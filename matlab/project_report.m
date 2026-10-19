@@ -1,20 +1,23 @@
 %% Full Quaternion Attitude Control and Differential-Flatness Trajectory Tracking for a Quadrotor
-%
+show_img('amrita_logo.png', [14 4]);
+
+%%
 % A Project Report on
 % Full Quaternion Attitude Control and Differential-Flatness
 % Trajectory Tracking for a Quadrotor
 %
-% Group 12 - B.Tech Artificial Intelligence Engineering
-%
-% Manohar Paturi   CB.SC.U4AIE24339
-% K Pushpak        CB.SC.U4AIE24328
-% Sai Krishna      CB.SC.U4AIE24308
-% B Sainath        CB.SC.U4AIE24309
-% Vishal           CB.SC.U4AIE24363
-%
+% Bachelor of Technology - Artificial Intelligence Engineering
 % School of Artificial Intelligence
 % Amrita School of Engineering, Bengaluru
 % Amrita Vishwa Vidyapeetham
+%
+% Project Group 12 - Team Members
+%
+%   Manohar Paturi ..... CB.SC.U4AIE24339
+%   K Pushpak .......... CB.SC.U4AIE24328
+%   Sai Krishna ........ CB.SC.U4AIE24308
+%   B Sainath .......... CB.SC.U4AIE24309
+%   Vishal ............. CB.SC.U4AIE24363
 %
 % Base papers: Fresk and Nikolakopoulos (ECC 2013) [1]; Choutri, Lagha,
 % Dala and Lipatov (IEEE 2017) [2].
@@ -38,6 +41,7 @@
 % Run with the Run button, publish it (PUBLISH tab) to PDF/HTML, or open
 % the accompanying project_report.mlx (Live Script).
 
+%% Initialisation
 clear; clc; close all; rng(1);
 figdir = fullfile(fileparts(mfilename('fullpath')), 'figures');
 if ~exist(figdir, 'dir'); mkdir(figdir); end
@@ -92,10 +96,6 @@ m = 0.2; g = 9.81; kf = 3e-9; km = 0.016*kf; d = 0.15/sqrt(2);
 w_max = 1.95/kf;
 J  = diag([6.5e-4 6.5e-4 1.2e-3]);
 Pq = 20; Pw = 4; tau_max = 4; noise_amp = 0.1;
-
-%% Cover
-% Official university logo (asset from the repository README).
-show_img('amrita_logo.png', [14 4]);
 
 %% 2. Mathematical Preliminaries - Quaternion Algebra from Scratch
 % 2.1 Why not Euler angles or rotation matrices
