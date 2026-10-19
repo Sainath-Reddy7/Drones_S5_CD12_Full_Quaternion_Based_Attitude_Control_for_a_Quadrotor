@@ -28,18 +28,27 @@ FINAL = here / "published" / "project_report_final.pdf"
 doc = SimpleDocTemplate(
     str(COVER), pagesize=A4,
     topMargin=2.2 * cm, bottomMargin=2 * cm,
-    leftMargin=2.4 * cm, rightMargin=2.4 * cm,
+    leftMargin=1.7 * cm, rightMargin=1.7 * cm,
     title="Cover", author="Group 12")
 
-title_s = ParagraphStyle("t", fontName="DVSB", fontSize=17, leading=23,
-                         textColor=INK, alignment=1, spaceAfter=14)
+TITLE = ("Full Quaternion Attitude Control and Differential-Flatness "
+         "Trajectory Tracking for a Quadrotor")
+avail = A4[0] - doc.leftMargin - doc.rightMargin - 14   # frame padding
+tfs = 16.0
+while pdfmetrics.stringWidth(TITLE, "DVSB", tfs) > avail:
+    tfs -= 0.1
+
+title_s = ParagraphStyle("t", fontName="DVSB", fontSize=tfs,
+                         leading=tfs + 7, textColor=INK, alignment=1,
+                         spaceAfter=14)
 sub_s = ParagraphStyle("s", fontName="DVS", fontSize=11.5, leading=16,
                        textColor=colors.HexColor("#41485c"), alignment=1,
                        spaceAfter=26)
 head_s = ParagraphStyle("h", fontName="DVSB", fontSize=11, leading=15,
-                        textColor=NAVY, spaceBefore=18, spaceAfter=8)
+                        textColor=NAVY, alignment=1, spaceBefore=18,
+                        spaceAfter=8)
 mem_s = ParagraphStyle("m", fontName="DVS", fontSize=11, leading=20,
-                       textColor=INK, leftIndent=2.2 * cm)
+                       textColor=INK, alignment=1)
 name_s = ParagraphStyle("n", fontName="DVS", fontSize=11, leading=14,
                         textColor=INK)
 roll_s = ParagraphStyle("r", fontName="DVS", fontSize=11, leading=14,
@@ -53,14 +62,14 @@ members = [
     ("Vishal", "CB.SC.U4AIE24363"),
 ]
 team_tbl = Table(
-    [["", Paragraph(n, name_s), Paragraph(r, roll_s)] for n, r in members],
-    colWidths=[2.2 * cm, 7.4 * cm, 4.2 * cm], hAlign="LEFT")
+    [[Paragraph(n, name_s), Paragraph(r, roll_s)] for n, r in members],
+    colWidths=[8.6 * cm, 5 * cm], hAlign="CENTER")
 team_tbl.setStyle(TableStyle([
-    ("LEFTPADDING", (1, 0), (-1, -1), 0),
-    ("RIGHTPADDING", (1, 0), (-1, -1), 0),
+    ("LEFTPADDING", (0, 0), (-1, -1), 0),
+    ("RIGHTPADDING", (0, 0), (-1, -1), 0),
     ("TOPPADDING", (0, 0), (-1, -1), 3.5),
     ("BOTTOMPADDING", (0, 0), (-1, -1), 3.5),
-    ("LINEBELOW", (1, 0), (-1, -2), 0.4, colors.HexColor("#c9cfdd")),
+    ("LINEBELOW", (0, 0), (-1, -2), 0.4, colors.HexColor("#c9cfdd")),
 ]))
 
 story = [
@@ -68,14 +77,12 @@ story = [
     Image(str(here / "amrita_logo.png"), width=11.8 * cm, height=3.7 * cm),
     Spacer(1, 34),
     Paragraph("A Project Report on", sub_s),
-    Paragraph("Full Quaternion Attitude Control and "
-              "Differential-Flatness Trajectory Tracking for a Quadrotor",
-              title_s),
+    Paragraph(TITLE, title_s),
     Spacer(1, 20),
     Paragraph("Bachelor of Technology - Artificial Intelligence Engineering",
               head_s),
     Paragraph("School of Artificial Intelligence<br/>"
-              "Amrita School of Engineering, Bengaluru<br/>"
+              "Amrita School of Engineering, Coimbatore<br/>"
               "Amrita Vishwa Vidyapeetham", mem_s),
     Paragraph("Project Group 12 - Team Members", head_s),
     team_tbl,

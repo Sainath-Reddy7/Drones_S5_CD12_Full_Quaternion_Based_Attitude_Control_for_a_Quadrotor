@@ -60,7 +60,7 @@ and every recording in [`RECORDINGS.md`](RECORDINGS.md) *is* the measured run.
 | Vishal | CB.SC.U4AIE24363 | cb.sc.u4aie24363@cb.students.amrita.edu |
 
 B.Tech (AI Engineering), School of Artificial Intelligence,
-Amrita School of Engineering, Amrita Vishwa Vidyapeetham.
+Amrita School of Engineering, Coimbatore, Amrita Vishwa Vidyapeetham.
 
 ---
 

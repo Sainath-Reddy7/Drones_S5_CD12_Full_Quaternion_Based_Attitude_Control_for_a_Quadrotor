@@ -40,7 +40,7 @@ publish, JPEG figure format). Audited against the repository.
 
 - Both members with roll numbers (B Sainath CB.SC.U4AIE24309, Vishal
   CB.SC.U4AIE24363), School of Artificial Intelligence, Amrita School
-  of Engineering Bengaluru, Amrita Vishwa Vidyapeetham.
+  of Engineering Coimbatore, Amrita Vishwa Vidyapeetham.
 - Logo: the repository README asset is white-on-transparent; rendered as
   a navy banner on the cover (page 3, pixel-verified).
 
