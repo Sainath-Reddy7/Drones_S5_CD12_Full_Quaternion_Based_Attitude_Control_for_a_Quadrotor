@@ -1,0 +1,69 @@
+<mujoco model="flatness_figure8_scene">
+  <!-- The paper vehicle + extension-path markers (visual-only markers:
+       contype=0 conaffinity=0, zero mass - dynamics identical to
+       sim/mujoco/quadrotor.xml alone). -->
+  <include file="../sim/mujoco/quadrotor.xml"/>
+  <worldbody>
+    <geom name="start_pole" type="cylinder" size="0.015 0.5" pos="0 0 0.5" rgba="0.9 0.9 0.9 1" contype="0" conaffinity="0"/>
+    <geom name="f8_0" type="sphere" pos="0.4433 0.5646 1.0000" size="0.05" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_1" type="sphere" pos="0.5906 0.7239 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_2" type="sphere" pos="0.7315 0.8515 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_3" type="sphere" pos="0.8644 0.9419 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_4" type="sphere" pos="0.9878 0.9912 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_5" type="sphere" pos="1.1004 0.9971 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_6" type="sphere" pos="1.2009 0.9594 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_7" type="sphere" pos="1.2883 0.8798 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_8" type="sphere" pos="1.3615 0.7618 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_9" type="sphere" pos="1.4199 0.6105 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_10" type="sphere" pos="1.4627 0.4324 1.0000" size="0.05" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_11" type="sphere" pos="1.4894 0.2355 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_12" type="sphere" pos="1.4998 0.0283 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_13" type="sphere" pos="1.4939 -0.1801 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_14" type="sphere" pos="1.4715 -0.3807 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_15" type="sphere" pos="1.4330 -0.5646 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_16" type="sphere" pos="1.3788 -0.7239 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_17" type="sphere" pos="1.3095 -0.8515 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_18" type="sphere" pos="1.2259 -0.9419 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_19" type="sphere" pos="1.1288 -0.9912 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_20" type="sphere" pos="1.0194 -0.9971 1.0000" size="0.05" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_21" type="sphere" pos="0.8988 -0.9594 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_22" type="sphere" pos="0.7683 -0.8798 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_23" type="sphere" pos="0.6294 -0.7618 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_24" type="sphere" pos="0.4837 -0.6105 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_25" type="sphere" pos="0.3326 -0.4324 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_26" type="sphere" pos="0.1779 -0.2355 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_27" type="sphere" pos="0.0212 -0.0283 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_28" type="sphere" pos="-0.1357 0.1801 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_29" type="sphere" pos="-0.2911 0.3807 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_30" type="sphere" pos="-0.4433 0.5646 1.0000" size="0.05" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_31" type="sphere" pos="-0.5906 0.7239 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_32" type="sphere" pos="-0.7315 0.8515 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_33" type="sphere" pos="-0.8644 0.9419 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_34" type="sphere" pos="-0.9878 0.9912 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_35" type="sphere" pos="-1.1004 0.9971 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_36" type="sphere" pos="-1.2009 0.9594 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_37" type="sphere" pos="-1.2883 0.8798 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_38" type="sphere" pos="-1.3615 0.7618 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_39" type="sphere" pos="-1.4199 0.6105 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_40" type="sphere" pos="-1.4627 0.4324 1.0000" size="0.05" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_41" type="sphere" pos="-1.4894 0.2355 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_42" type="sphere" pos="-1.4998 0.0283 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_43" type="sphere" pos="-1.4939 -0.1801 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_44" type="sphere" pos="-1.4715 -0.3807 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_45" type="sphere" pos="-1.4330 -0.5646 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_46" type="sphere" pos="-1.3788 -0.7239 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_47" type="sphere" pos="-1.3095 -0.8515 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_48" type="sphere" pos="-1.2259 -0.9419 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_49" type="sphere" pos="-1.1288 -0.9912 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_50" type="sphere" pos="-1.0194 -0.9971 1.0000" size="0.05" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_51" type="sphere" pos="-0.8988 -0.9594 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_52" type="sphere" pos="-0.7683 -0.8798 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_53" type="sphere" pos="-0.6294 -0.7618 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_54" type="sphere" pos="-0.4837 -0.6105 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_55" type="sphere" pos="-0.3326 -0.4324 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_56" type="sphere" pos="-0.1779 -0.2355 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_57" type="sphere" pos="-0.0212 -0.0283 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_58" type="sphere" pos="0.1357 0.1801 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+    <geom name="f8_59" type="sphere" pos="0.2911 0.3807 1.0000" size="0.028" rgba="1 0.45 0.05 1" contype="0" conaffinity="0"/>
+  </worldbody>
+</mujoco>
