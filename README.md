@@ -491,7 +491,7 @@ python -m sim.mujoco.record               # in-engine attitude-test renders
 | [`flatness/`](flatness/) | **Paper 2: path planning** — Eq. (8) model + Eq. (9) mixer, flat outputs (13), flatness map (15, 19–21), double-loop LQR (17–18, 22–23), study case on ideal + MuJoCo, in-engine recorder |
 | [`make_recordings.py`](make_recordings.py) · [`RECORDINGS.md`](RECORDINGS.md) | Recording generators · gallery of every result, animated |
 | [`scenarios/`](scenarios/) · [`tests/`](tests/) · [`docs/figures/`](docs/figures/) | Runnable benchmarks · 70 tests · result figures |
-| [`REPORT.md`](REPORT.md) · [`report1.md`](report1.md) · [`file_structure.md`](file_structure.md) · [`FRP.md`](FRP.md) | Technical report · project report · file-by-file equation map · four-stack deployment rationale |
+| [`docs/PROJECT_REPORT.pdf`](docs/PROJECT_REPORT.pdf) · [`REPORT.md`](REPORT.md) · [`FRP.md`](FRP.md) | Project report (full, typed equations, both papers) · paper-1 technical report · four-stack deployment rationale |
 | [deploy/](deploy/) · [`fresk_nikolakopoulos_precise_attitude_simulator_xyz_labels(1).html`](fresk_nikolakopoulos_precise_attitude_simulator_xyz_labels%281%29.html) | Vercel pages · standalone zero-dependency browser simulator |
 
 ## Testing
@@ -539,5 +539,5 @@ Control for a Quadrotor UAV," *ICUAS 2006*. ·
 [5] A. Tayebi, S. McGilvray, "Attitude Stabilization of a VTOL Quadrotor Aircraft,"
 *IEEE TCST*, 2006. ·
 [6] PX4 Development Team, [docs.px4.io](https://docs.px4.io/) — architecture reference. ·
-[7] This repository — equation-to-function citations in [`file_structure.md`](file_structure.md);
+[7] This repository — the equation-to-function maps in the README above;
 full methodology in [`REPORT.md`](REPORT.md); recordings in [`RECORDINGS.md`](RECORDINGS.md).
