@@ -7,7 +7,7 @@
 <p align="center">
   <b>A Python Software-In-The-Loop Reproduction, Stability Analysis, 6-DOF Extension,<br>
   Four-Simulator Deployment, and Path-Planning Implementation of Two Papers</b><br>
-  Group 12 · School of Artificial Intelligence, Amrita Vishya Vidyapeetham
+  Group 12 · B.Tech AI Engineering · School of Artificial Intelligence, Amrita Vishwa Vidyapeetham
 </p>
 
 <p align="center">
@@ -49,12 +49,18 @@ cross-validated on multiple physics engines:
 Everything below is measured, not claimed: each result regenerates from one command,
 and every recording in [`RECORDINGS.md`](RECORDINGS.md) *is* the measured run.
 
-## Team
+## Team - Group 12
 
 | Member | Roll No. | Email |
 |---|---|---|
+| Manohar Paturi | CB.SC.U4AIE24339 | cb.sc.u4aie24339@cb.students.amrita.edu |
+| K Pushpak | CB.SC.U4AIE24328 | cb.sc.u4aie24328@cb.students.amrita.edu |
+| Sai Krishna | CB.SC.U4AIE24308 | cb.sc.u4aie24308@cb.students.amrita.edu |
 | B Sainath | CB.SC.U4AIE24309 | cb.sc.u4aie24309@cb.students.amrita.edu |
 | Vishal | CB.SC.U4AIE24363 | cb.sc.u4aie24363@cb.students.amrita.edu |
+
+B.Tech (AI Engineering), School of Artificial Intelligence,
+Amrita School of Engineering, Amrita Vishwa Vidyapeetham.
 
 ---
 

@@ -6,12 +6,15 @@ d = Doc(
     "PROJECT_REPORT.pdf",
     "Full Quaternion Attitude Control and Differential-Flatness Trajectory "
     "Tracking for a Quadrotor",
-    "Project Report - Group 12 (B Sainath CB.SC.U4AIE24309, Vishal "
-    "CB.SC.U4AIE24363) - School of Artificial Intelligence, Amrita Vishwa "
-    "Vidyapeetham. Base papers: Fresk & Nikolakopoulos (ECC 2013) [1] and "
-    "Choutri, Lagha, Dala & Lipatov (IEEE 2017) [2]. All equations below are "
-    "typed out and were cross-checked numerically against the implementation "
-    "(7 equation groups, randomised trials - see Section 8).")
+    "A Project Report - Group 12, B.Tech Artificial Intelligence Engineering"
+    " - Manohar Paturi (CB.SC.U4AIE24339), K Pushpak (CB.SC.U4AIE24328), "
+    "Sai Krishna (CB.SC.U4AIE24308), B Sainath (CB.SC.U4AIE24309), Vishal "
+    "(CB.SC.U4AIE24363) - School of Artificial Intelligence, Amrita School "
+    "of Engineering, Amrita Vishwa Vidyapeetham. Base papers: Fresk & "
+    "Nikolakopoulos (ECC 2013) [1] and Choutri, Lagha, Dala & Lipatov "
+    "(IEEE 2017) [2]. All equations below are typed out and were "
+    "cross-checked numerically against the implementation (7 equation "
+    "groups, randomised trials - see Section 8).")
 
 # ================================================================ 1
 d.h1("1. Introduction")

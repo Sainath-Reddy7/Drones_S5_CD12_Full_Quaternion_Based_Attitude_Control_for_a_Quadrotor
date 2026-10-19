@@ -1,17 +1,23 @@
 %% Full Quaternion Attitude Control and Differential-Flatness Trajectory Tracking for a Quadrotor
 %
-% Project Report - Group 12
+% A Project Report on
+% Full Quaternion Attitude Control and Differential-Flatness
+% Trajectory Tracking for a Quadrotor
 %
-% B Sainath - CB.SC.U4AIE24309
-% Vishal    - CB.SC.U4AIE24363
+% Group 12 - B.Tech Artificial Intelligence Engineering
+%
+% Manohar Paturi   CB.SC.U4AIE24339
+% K Pushpak        CB.SC.U4AIE24328
+% Sai Krishna      CB.SC.U4AIE24308
+% B Sainath        CB.SC.U4AIE24309
+% Vishal           CB.SC.U4AIE24363
 %
 % School of Artificial Intelligence
 % Amrita School of Engineering, Bengaluru
 % Amrita Vishwa Vidyapeetham
 %
 % Base papers: Fresk and Nikolakopoulos (ECC 2013) [1]; Choutri, Lagha,
-% Dala and Lipatov (IEEE 2017) [2]. Faculty guide details were not
-% present in the project materials and are therefore not stated here.
+% Dala and Lipatov (IEEE 2017) [2].
 %
 % Base papers:
 % [1] E. Fresk, G. Nikolakopoulos, "Full Quaternion Based Attitude Control
@@ -77,9 +83,9 @@ if ~exist(figdir, 'dir'); mkdir(figdir); end
 % matches a planar-X quadrotor with light arms):
 %
 % * mass $m = 0.2$ kg
-% * inertia $J = \mathrm{diag}(6.5\times10^{-4},\ 6.5\times10^{-4},\ 1.2\times10^{-3})$ kg m$^2$
+% * inertia $J = \mathrm{diag}(6.5\times10^{-4},\ 6.5\times10^{-4},\ 1.2\times10^{-3})\ \mathrm{kg\,m^2}$
 % * arm $L = 0.15$ m, rotor offsets $(\pm d, \pm d)$ with $d = L/\sqrt{2} = 0.106$ m
-% * thrust coefficient $k_f = 3.0\times10^{-9}$ N per (rad/s)$^2$, $k_m = 0.016\,k_f$
+% * thrust coefficient $k_f = 3.0\times10^{-9}$ N per $\mathrm{(rad/s)^2}$, $k_m = 0.016\,k_f$
 % * thrust-to-weight ratio 4 (per-rotor maximum thrust 1.95 N)
 
 m = 0.2; g = 9.81; kf = 3e-9; km = 0.016*kf; d = 0.15/sqrt(2);
@@ -1039,11 +1045,13 @@ fprintf('recording catalogue: all frames embedded\n');
 % results/comparison.md (their runners live in the Python repo;
 % running them requires WSL2 and is NOT reproduced inside MATLAB).
 %
-% Team and university: both members with roll numbers, School of
-% Artificial Intelligence, Amrita School of Engineering, Amrita
-% Vishwa Vidyapeetham, official logo on the cover (from the
-% repository's README asset). Faculty guide: NOT present in any
-% project material - outstanding, not invented.
+% Team and university: all five Group-12 members with roll numbers
+% (Manohar Paturi, K Pushpak, Sai Krishna, B Sainath, Vishal), B.Tech
+% Artificial Intelligence Engineering, School of Artificial
+% Intelligence, Amrita School of Engineering, Amrita Vishwa
+% Vidyapeetham, official logo on the cover (navy banner render of the
+% README asset). Faculty guide: NOT present in any project material -
+% outstanding, not invented.
 %
 % Outstanding items (explicit): faculty-guide details; the E3
 % flatness feed-forward extension (specified, not yet run); PyBullet
