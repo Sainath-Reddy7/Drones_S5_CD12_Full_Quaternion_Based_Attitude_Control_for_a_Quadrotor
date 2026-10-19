@@ -1,26 +1,11 @@
 %% Full Quaternion Attitude Control and Differential-Flatness Trajectory Tracking for a Quadrotor
-show_img('amrita_logo.png', [14 4]);
-
-%%
-% A Project Report on
-% Full Quaternion Attitude Control and Differential-Flatness
-% Trajectory Tracking for a Quadrotor
-%
-% Bachelor of Technology - Artificial Intelligence Engineering
-% School of Artificial Intelligence
-% Amrita School of Engineering, Bengaluru
-% Amrita Vishwa Vidyapeetham
-%
-% Project Group 12 - Team Members
-%
-%   Manohar Paturi ..... CB.SC.U4AIE24339
-%   K Pushpak .......... CB.SC.U4AIE24328
-%   Sai Krishna ........ CB.SC.U4AIE24308
-%   B Sainath .......... CB.SC.U4AIE24309
-%   Vishal ............. CB.SC.U4AIE24363
-%
-% Base papers: Fresk and Nikolakopoulos (ECC 2013) [1]; Choutri, Lagha,
-% Dala and Lipatov (IEEE 2017) [2].
+% A Project Report - Bachelor of Technology, Artificial Intelligence
+% Engineering, School of Artificial Intelligence, Amrita School of
+% Engineering, Bengaluru, Amrita Vishwa Vidyapeetham. Group 12: B Sainath
+% (CB.SC.U4AIE24309), Manohar Paturi (CB.SC.U4AIE24339), K Pushpak
+% (CB.SC.U4AIE24328), Sai Krishna (CB.SC.U4AIE24308), Vishal
+% (CB.SC.U4AIE24363). Base papers: [1] Fresk & Nikolakopoulos (ECC 2013);
+% [2] Choutri, Lagha, Dala & Lipatov (IEEE 2017).
 %
 % Base papers:
 % [1] E. Fresk, G. Nikolakopoulos, "Full Quaternion Based Attitude Control
