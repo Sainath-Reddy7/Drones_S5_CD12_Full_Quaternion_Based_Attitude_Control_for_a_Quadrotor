@@ -1,7 +1,12 @@
 %% Full Quaternion Attitude Control and Differential-Flatness Trajectory Tracking for a Quadrotor
 % Project Report - Group 12
-% B Sainath (CB.SC.U4AIE24309) and Vishal (CB.SC.U4AIE24363)
-% School of Artificial Intelligence, Amrita Vishwa Vidyapeetham
+%
+% B Sainath (CB.SC.U4AIE24309)
+% Vishal (CB.SC.U4AIE24363)
+%
+% School of Artificial Intelligence
+% Amrita School of Engineering, Bengaluru
+% Amrita Vishwa Vidyapeetham
 %
 % Base papers:
 % [1] E. Fresk, G. Nikolakopoulos, "Full Quaternion Based Attitude Control
@@ -30,12 +35,12 @@ if ~exist(figdir, 'dir'); mkdir(figdir); end
 % A quadrotor is a rigid body acted on by gravity and by four propeller
 % thrusts fixed to the body. Its configuration has six degrees of freedom
 % (three translations, three rotations), but the four rotor speeds give
-% only four independent control inputs: the total thrust T along the body
-% z-axis, and three body torques. Six degrees of freedom, four inputs:
-% the system is underactuated.
+% only four independent control inputs: the total thrust $T$ along the
+% body $z$-axis, and three body torques $\tau_x, \tau_y, \tau_z$. Six
+% degrees of freedom, four inputs: the system is underactuated.
 %
 % The consequence is structural, not incidental. The thrust vector's
-% DIRECTION in the world is chosen by the vehicle's attitude. To
+% direction in the world is chosen by the vehicle's attitude. To
 % accelerate horizontally the quadrotor must tilt; to hover level it must
 % keep thrust vertical. Attitude and translation are therefore coupled,
 % and any controller that commands position must implicitly command
@@ -49,27 +54,27 @@ if ~exist(figdir, 'dir'); mkdir(figdir); end
 %
 % * Paper [2] (IEEE 2017) closes the outer half. It uses DIFFERENTIAL
 %   FLATNESS - the fact that the quadrotor's full state and input are
-%   algebraic functions of four chosen outputs (x, y, z, yaw) and their
-%   derivatives - to convert a desired path into the thrust and attitude
-%   that produce it, then tracks that reference with two linear-quadratic
-%   regulators in a cascade.
+%   algebraic functions of four chosen outputs $(x, y, z, \psi)$ and
+%   their derivatives - to convert a desired path into the thrust and
+%   attitude that produce it, then tracks that reference with two
+%   linear-quadratic regulators in a cascade.
 %
 % This project reproduced both papers from their equations, deployed the
-% paper-1 law unmodified on four simulation stacks (ideal model,
-% MuJoCo, gym-pybullet-drones, and real ArduPilot firmware compiled from
-% source), implemented paper 2 equation-by-equation with an independent
+% paper-1 law unmodified on four simulation stacks (ideal model, MuJoCo,
+% gym-pybullet-drones, and real ArduPilot firmware compiled from source),
+% implemented paper 2 equation-by-equation with an independent
 % equation-level validation, and extended paper 2 with a trajectory
 % library (figure-8, vertical orbit, minimum-snap waypoint tours). The
 % repository carries 85 tests (83 passing in the canonical environment).
 %
 % One airframe is shared by everything (derived in the repository from
-% paper 1's stated inertia, whose ratio Izz/Ixx ~ 1.85 matches a planar-X
-% quadrotor with light arms):
+% paper 1's stated inertia, whose ratio $I_{zz}/I_{xx} \approx 1.85$
+% matches a planar-X quadrotor with light arms):
 %
-% * mass m = 0.2 kg
-% * inertia J = diag(6.5e-4, 6.5e-4, 1.2e-3) kg m^2
-% * arm L = 0.15 m, rotor offsets (+-d, +-d) with d = L/sqrt(2) = 0.106 m
-% * thrust coefficient kf = 3.0e-9 N per (rad/s)^2, km = 0.016*kf
+% * mass $m = 0.2$ kg
+% * inertia $J = \mathrm{diag}(6.5\times10^{-4},\ 6.5\times10^{-4},\ 1.2\times10^{-3})$ kg m$^2$
+% * arm $L = 0.15$ m, rotor offsets $(\pm d, \pm d)$ with $d = L/\sqrt{2} = 0.106$ m
+% * thrust coefficient $k_f = 3.0\times10^{-9}$ N per (rad/s)$^2$, $k_m = 0.016\,k_f$
 % * thrust-to-weight ratio 4 (per-rotor maximum thrust 1.95 N)
 
 m = 0.2; g = 9.81; kf = 3e-9; km = 0.016*kf; d = 0.15/sqrt(2);
@@ -82,99 +87,101 @@ Pq = 20; Pw = 4; tau_max = 4; noise_amp = 0.1;
 %
 % An attitude is a rotation. Three popular representations exist:
 %
-% * Euler angles (phi, theta, psi): three numbers, intuitive - but the
-%   map from angles to rotation is singular. At theta = +-90 deg the
-%   same physical attitude corresponds to infinitely many (phi, psi)
-%   pairs (gimbal lock), and small attitude changes produce huge angle
-%   jumps. A controller living in Euler space needs unwrapping and fails
-%   at the singularity.
+% * Euler angles $(\phi, \theta, \psi)$: three numbers, intuitive - but
+%   the map from angles to rotation is singular. At $\theta = \pm 90^\circ$
+%   the same physical attitude corresponds to infinitely many
+%   $(\phi, \psi)$ pairs (gimbal lock), and small attitude changes
+%   produce huge angle jumps. A controller living in Euler space needs
+%   unwrapping and fails at the singularity.
 %
-% * Rotation matrix R: nine numbers with six constraints (orthonormal),
-%   no singularity - but heavy, and extracting attitude from R needs care.
+% * Rotation matrix $R$: nine numbers with six constraints
+%   (orthonormal), no singularity - but heavy, and extracting attitude
+%   from $R$ needs care.
 %
 % * Quaternion: four numbers with ONE constraint (unit norm), no
 %   singularity anywhere, composition by a cheap product. This is why
-%   both papers use it. The one cost: q and -q denote the same rotation
-%   (the "double cover"), handled by a one-line sign rule.
+%   both papers use it. The one cost: $q$ and $-q$ denote the same
+%   rotation (the "double cover"), handled by a one-line sign rule.
 %
 % 2.2 Definition
 %
 % A quaternion is a hyper-complex number with one scalar part and a
 % three-vector part, written scalar-first:
 %
-%   q = q0 + q1*i + q2*j + q3*k = (q0, q_vec),  q0 real, q_vec in R^3
+% $$q = q_0 + q_1 i + q_2 j + q_3 k = (q_0,\ \mathbf{q}_v), \;\;\; \|q\| = 1$$
 %
-% with the imaginary units multiplying by i*j = k, j*k = i, k*i = j and
-% each squaring to -1 (anticommutative otherwise). A UNIT quaternion
-% (||q|| = 1) represents a rotation.
+% with the imaginary units multiplying by $i j = k$, $j k = i$, $k i = j$
+% and each squaring to $-1$ (anticommutative otherwise). A UNIT
+% quaternion represents a rotation.
 %
 % 2.3 The product (rotation composition)
 %
-% Multiplying out the imaginary-unit rules for two quaternions p, q and
-% collecting scalar and vector parts gives the Hamilton product:
+% Multiplying out the imaginary-unit rules for two quaternions $p, q$
+% and collecting scalar and vector parts gives the Hamilton product:
 %
-%   p (x) q = ( p0*q0 - p_vec . q_vec ,
-%               p0*q_vec + q0*p_vec + p_vec x q_vec )
+% $$p \otimes q = ( \, p_0 q_0 - \mathbf{p}_v \cdot \mathbf{q}_v \, , \;\; p_0 \mathbf{q}_v + q_0 \mathbf{p}_v + \mathbf{p}_v \times \mathbf{q}_v \, )$$
 %
 % The dot product couples the scalar parts; the CROSS product is what
-% encodes the non-commutativity of 3D rotations (p (x) q differs from
-% q (x) p). If q1 then q2 rotate a body, the composite is q2 (x) q1.
+% encodes the non-commutativity of 3D rotations ($p \otimes q \neq q
+% \otimes p$). If $q_1$ then $q_2$ rotate a body, the composite is
+% $q_2 \otimes q_1$.
 %
 % 2.4 Conjugate, norm, inverse
 %
-%   q* = (q0, -q_vec)                     conjugate (reverses rotation)
-%   ||q|| = sqrt(q0^2 + q1^2 + q2^2 + q3^2)
-%   q^-1 = q*/||q||  =  q*                inverse (= conjugate when unit)
+% $$q^{*} = (q_0,\ -\mathbf{q}_v) \;\;\;\mathrm{(conjugate\ -\ reverses\ rotation)}$$
+% $$\|q\| = \sqrt{q_0^2 + q_1^2 + q_2^2 + q_3^2} \;\;\;\mathrm{(norm)}$$
+% $$q^{-1} = q^{*} / \|q\| = q^{*} \;\;\;\mathrm{(inverse\ = conjugate\ when\ unit)}$$
 %
 % 2.5 Rotating a vector; the direction-cosine matrix
 %
-% Rotating a vector v by the attitude q:
+% Rotating a vector $v$ by the attitude $q$:
 %
-%   v' = q (x) [0, v] (x) q*
+% $$v' = q \otimes [0, v] \otimes q^{*} = R(q)\, v$$
 %
-% This equals a matrix-vector product v' = R(q) v, where R(q) follows
-% from expanding the product (each column of R is a body axis expressed
-% in world coordinates):
+% where $R(q)$ follows from expanding the product. Its COLUMNS are the
+% body axes expressed in world coordinates:
 %
-%   R(q) = [ 1-2(q2^2+q3^2)   2(q1q2-q0q3)     2(q1q3+q0q2)
-%            2(q1q2+q0q3)     1-2(q1^2+q3^2)   2(q2q3-q0q1)
-%            2(q1q3-q0q2)     2(q2q3+q0q1)     1-2(q1^2+q2^2) ]
+% $$R(q) = [ \, r_1 \;\; r_2 \;\; r_3 \, ]$$
+% $$r_1 = [ \, 1-2(q_2^2+q_3^2) \, ; \;\; 2(q_1 q_2 + q_0 q_3) \, ; \;\; 2(q_1 q_3 - q_0 q_2) \, ]$$
+% $$r_2 = [ \, 2(q_1 q_2 - q_0 q_3) \, ; \;\; 1-2(q_1^2+q_3^2) \, ; \;\; 2(q_2 q_3 + q_0 q_1) \, ]$$
+% $$r_3 = [ \, 2(q_1 q_3 + q_0 q_2) \, ; \;\; 2(q_2 q_3 - q_0 q_1) \, ; \;\; 1-2(q_1^2+q_2^2) \, ]$$
 %
-% R is orthonormal (R' R = I) and composes linearly:
+% $R$ is orthonormal ($R^T R = I$) and composes linearly:
 %
-%   R(p (x) q) = R(p) R(q)
+% $$R(p \otimes q) = R(p)\, R(q)$$
 %
 % 2.6 Axis-angle construction
 %
-% The most useful building rule. A rotation by angle alpha about the unit
-% axis u is exactly:
+% The most useful building rule. A rotation by angle $\alpha$ about the
+% unit axis $\mathbf{u}$ is exactly:
 %
-%   q = [ cos(alpha/2) , u sin(alpha/2) ]
+% $$q = [ \, \cos(\alpha/2) \, , \;\; \mathbf{u} \sin(\alpha/2) \, ]$$
 %
-% Note the HALF angle: rotating 360 deg gives alpha/2 = 180 deg, i.e.
-%   q = [-1, 0, 0, 0] = -identity - the double cover again.
+% Note the HALF angle: rotating 360 degrees gives $\alpha/2 = 180^\circ$,
+% i.e. $q = [-1, 0, 0, 0] = -$identity - the double cover again.
 %
 % 2.7 The kinematic equation (derive both forms!)
 %
-% Let the body rotate with angular velocity omega expressed in the BODY
-% frame. In a small time dt the attitude gains the rotation
-% [1, omega*dt/2] (infinitesimal rotations commute), so
+% Let the body rotate with angular velocity $\omega$ expressed in the
+% BODY frame. In a small time $dt$ the attitude gains the rotation
+% $[1, \omega\, dt/2]$ (infinitesimal rotations commute), so
 %
-%   q(t+dt) = q (x) [1, omega dt/2]  =>  q_dot = (1/2) q (x) [0, omega]
+% $$\frac{dq}{dt} = \frac{1}{2}\, q \otimes [ \, 0 \, ; \, \omega \, ] \;\;\; (\omega = \mathrm{body\ rate})$$
 %
 % If instead the angular velocity is expressed in the WORLD frame
-% (omega_w = R(q) omega), the increment premultiplies:
+% ($\omega_w = R(q)\, \omega$), the increment premultiplies:
 %
-%   q_dot = (1/2) [0, omega_w] (x) q
+% $$\frac{dq}{dt} = \frac{1}{2}\, [ \, 0 \, ; \, \omega_w \, ] \otimes q \;\;\; (\omega_w = \mathrm{world\ rate})$$
 %
-% SAME motion, two algebraic shapes. Pairing a body-frame omega with the
-% world-frame formula (or vice versa) is a classic bug: the two differ by
-% exactly the term [0, q_vec x omega], which is zero at hover but grows
-% with tilt x rate. Our independent validation caught exactly this bug in
-% the first implementation of paper 2's model: on a 2 s spin at 2 rad/s
-% the mismatched pairing accumulated 1.5 rad of attitude error while the
-% correct pairing stayed at 3e-8 rad. Section 5 uses the body-frame form
-% because Euler's equation (which shares the same omega) is a body-frame
+% SAME motion, two algebraic shapes. Pairing a body-frame $\omega$ with
+% the world-frame formula (or vice versa) is a classic bug: the two
+% differ by exactly the term $[0,\ \mathbf{q}_v \times \omega]$, which is
+% zero at hover but grows with tilt $\times$ rate. Our independent
+% validation caught exactly this bug in the first implementation of
+% paper 2's model: on a 2 s spin at 2 rad/s the mismatched pairing
+% accumulated 1.5 rad of attitude error while the correct pairing stayed
+% at $3\times10^{-8}$ rad. Section 6 uses the body-frame form because
+% Euler's equation (which shares the same $\omega$) is a body-frame
 % statement.
 %
 % 2.8 Numerical verification
@@ -195,103 +202,111 @@ fprintf('Quaternion algebra verification (200 random trials): max error %.2e\n',
 % origin - the paper's stated simplification). Newton-Euler rotation in
 % the body frame gives Euler's equation:
 %
-%   J omega_dot = tau - omega x (J omega)
+% $$J \frac{d\omega}{dt} = \tau - \omega \times (J \omega)$$
 %
 % The second term is the gyroscopic effect: a spinning anisotropic body
-% resists having its rotation axis turned (for our J with Ixx = Iyy it
-% couples pitch rate into roll rate at high spin). With the kinematic
-% equation of Section 2.7, the attitude plant is:
+% resists having its rotation axis turned (for our $J$ with $I_{xx} =
+% I_{yy}$ it couples pitch rate into roll rate at high spin). With the
+% kinematic equation of Section 2.7, the attitude plant is:
 %
-%   q_dot  = (1/2) q (x) [0, omega]
-%   J omega_dot = tau - omega x (J omega)
+% $$\frac{dq}{dt} = \frac{1}{2}\, q \otimes [ \, 0 \, ; \, \omega \, ]$$
+% $$J \frac{d\omega}{dt} = \tau - \omega \times (J \omega)$$
 %
-% STRUCTURE: torque -> angular rate -> attitude is a DOUBLE INTEGRATOR
-% (plus the small gyroscopic perturbation). This single observation
-% drives the whole design:
+% STRUCTURE: torque $\rightarrow$ angular rate $\rightarrow$ attitude is
+% a DOUBLE INTEGRATOR (plus the small gyroscopic perturbation). This
+% single observation drives the whole design:
 %
 % * a proportional-derivative law suffices; no integral action is needed
 %   for the error to decay (a double integrator has no steady-state
 %   offset to a step),
-% * the "derivative" part can act on omega DIRECTLY (it is a state) - no
-%   numerical differentiation of the attitude is ever needed,
+% * the "derivative" part can act on $\omega$ DIRECTLY (it is a state) -
+%   no numerical differentiation of the attitude is ever needed,
 % * the whole law can live in quaternion space.
 
 %% 4. Paper 1 - The Control Law Derived (Eqs. 19-21 of [1])
 % 4.1 The error quaternion
 %
-% With reference attitude q_ref and measured attitude q_m (the paper
-% works in the conjugated convention; equivalently one may conjugate both
-% and work body-to-world - the algebra is identical), the error
+% With reference attitude $q_{ref}$ and measured attitude $q_m$ (the
+% paper works in the conjugated convention; equivalently one may
+% conjugate both and work body-to-world - the algebra is identical), the
+% error
 %
-%   q_err = q_ref (x) q_m*
+% $$q_{err} = q_{ref} \otimes q_m^{*}$$
 %
 % is the rotation that takes the measured attitude to the reference. In
-% axis-angle form q_err = [cos(e/2), u sin(e/2)] with e the error angle
-% and u the rotation axis, so its VECTOR PART is
+% axis-angle form $q_{err} = [\cos(e/2),\ \mathbf{u} \sin(e/2)]$ with
+% $e$ the error angle and $\mathbf{u}$ the rotation axis, so its VECTOR
+% PART is
 %
-%   vec(q_err) = u sin(e/2)
+% $$\mathbf{e} = \mathrm{vec}(q_{err}) = \mathbf{u} \sin(e/2)$$
 %
-% - i.e. the axis we must rotate about, SCALED by sin(half the error).
-% For small errors sin(e/2) ~ e/2 and the vector part is proportional to
-% the error itself; for large errors it saturates gracefully (|vec| <= 1)
-% and even vanishes at e = 360 deg - which is why the flip scenario
-% disables the sign correction (below) to commit to the long way round.
+% - i.e. the axis we must rotate about, SCALED by $\sin$(half the
+% error). For small errors $\sin(e/2) \approx e/2$ and the vector part
+% is proportional to the error itself; for large errors it saturates
+% gracefully ($|\mathbf{e}| \leq 1$) and even vanishes at $e = 360^\circ$
+% - which is why the flip scenario disables the sign correction (below)
+% to commit to the long way round.
 %
 % 4.2 The law
 %
-%   e     = vec(q_err), sign-corrected: if q_err(1) < 0, e = -e
-%   tau   = -Pq * e - Pw * omega_m
-%   tau   clipped elementwise to +-4 N*m per axis
+% With the vector part sign-corrected (if $q_{err}(1) < 0$, flip the
+% sign of $\mathbf{e}$ - the shortest rotation), the law is
 %
-% with the paper's gains Pq = 20, Pw = 4. Reading it line by line:
+% $$\tau = -P_q\, \mathbf{e} - P_\omega\, \omega_m, \;\;\; P_q = 20, \;\; P_\omega = 4$$
+% $$\tau \;\; \mathrm{clipped\ elementwise\ to} \;\; \pm 4 \;\; \mathrm{N m\ per\ axis}$$
 %
-% * -Pq * e : rotate about minus the error axis, proportional to
-%   sin(e/2). In the double integrator this is the "P" that restores
-%   attitude; the sin(e/2) scaling (not the raw angle) is what keeps the
-%   law singularity-free and bounded for errors up to 180 deg.
+% Reading it term by term:
 %
-% * -Pw * omega_m : damping. Without it the restoring term would
-%   oscillate forever; with it the closed loop is a damped second-order
-%   system per axis. Because omega is a measured STATE, this is exact
-%   derivative action - no filtering, no phase lag.
+% * $-P_q\, \mathbf{e}$: rotate about minus the error axis,
+%   proportional to $\sin(e/2)$. In the double integrator this is the
+%   "P" that restores attitude; the $\sin(e/2)$ scaling (not the raw
+%   angle) is what keeps the law singularity-free and bounded for
+%   errors up to 180 degrees.
 %
-% * The sign correction implements the shortest rotation: q and -q are
-%   the same rotation, so an error quaternion with negative scalar would
-%   steer the long way round; flipping the vector part takes the short
-%   way. The FLIP scenario deliberately skips it - the reference sweeps
-%   a full 360 deg and the vehicle must follow the long way, not unwind.
+% * $-P_\omega\, \omega_m$: damping. Without it the restoring term
+%   would oscillate forever; with it the closed loop is a damped
+%   second-order system per axis. Because $\omega$ is a measured STATE,
+%   this is exact derivative action - no filtering, no phase lag.
 %
-% * Saturation +-4 N*m per axis: the paper's stated bound, respecting
-%   the physical actuators.
+% * The sign correction implements the shortest rotation: $q$ and $-q$
+%   are the same rotation, so an error quaternion with negative scalar
+%   would steer the long way round; flipping the vector part takes the
+%   short way. The FLIP scenario deliberately skips it - the reference
+%   sweeps a full 360 degrees and the vehicle must follow the long way,
+%   not unwind.
+%
+% * Saturation $\pm 4$ N m per axis: the paper's stated bound,
+%   respecting the physical actuators.
 %
 % 4.3 Sensor model
 %
-% The paper's sensor noise: UNIFORM +-0.1 on every quaternion component
-% and every rate component, refreshed at the sensing rate. +-0.1 on a
-% unit quaternion is roughly 11 deg of measured attitude error - this is
-% the error FLOOR any implementation of this law shows on these sensors
-% (Section 4.6 explains the ~17.5 deg RMS floor).
+% The paper's sensor noise: UNIFORM $\pm 0.1$ on every quaternion
+% component and every rate component, refreshed at the sensing rate.
+% $\pm 0.1$ on a unit quaternion is roughly $11^\circ$ of measured
+% attitude error - this is the error FLOOR any implementation of this
+% law shows on these sensors (Section 4.6 explains the observed
+% $\approx 17.5^\circ$ RMS floor).
 %
 % 4.4 The three benchmark scenarios (exact definitions)
 %
-% * STEP: 1 rad (57.3 deg) steps on roll, pitch and yaw, staggered at
-%   t = 1, 5, 9 s over a 15 s run. Tests large-error convergence and
-%   settling.
+% * STEP: 1 rad ($57.3^\circ$) steps on roll, pitch and yaw, staggered
+%   at $t = 1, 5, 9$ s over a 15 s run. Tests large-error convergence
+%   and settling.
 %
-% * SINE: 0.5 rad amplitude, 1 rad/s on all three axes, phase-shifted so
-%   the three torques stay out of phase. Tests tracking of a moving
+% * SINE: 0.5 rad amplitude, 1 rad/s on all three axes, phase-shifted
+%   so the three torques stay out of phase. Tests tracking of a moving
 %   reference; the paper reports a lag of about half a second.
 %
-% * FLIP: roll reference ramps 0 -> 2*pi rad over 2 s, then holds.
-%   Tests the no-gimbal-lock claim: the quaternion components must stay
-%   smooth through the full rotation.
+% * FLIP: roll reference ramps $0 \rightarrow 2\pi$ rad over 2 s, then
+%   holds. Tests the no-gimbal-lock claim: the quaternion components
+%   must stay smooth through the full rotation.
 %
 % 4.5 Implementation and THIS MATLAB RUN
 %
-% Plant integrated with RK4 at 20 kHz (Section 6 derives why the control
-% rate must be >= 12.3 kHz for these gains), paper noise refreshed every
-% control tick, error measured against the NOISY quaternion exactly as
-% the repository does:
+% Plant integrated with RK4 at 20 kHz (Section 5 derives why the
+% control rate must be $\geq 12.3$ kHz for these gains), paper noise
+% refreshed every control tick, error measured against the NOISY
+% quaternion exactly as the repository does:
 
 r1 = run_paper1('step', 15, Pq, Pw, tau_max, noise_amp, J, figdir);
 r2 = run_paper1('sine', 15, Pq, Pw, tau_max, noise_amp, J, figdir);
@@ -308,7 +323,7 @@ fprintf('and averaging over axes and time gives the observed floor.)\n');
 % 4.6 Repository results for paper 1 (measured, not restated)
 %
 % The repository flew this EXACT law, gains untouched, on four stacks -
-% same references, same +-0.1 noise, three seeds each. From
+% same references, same $\pm 0.1$ noise, three seeds each. From
 % results/comparison.md (regenerated by: python -m sim.compare):
 %
 % sine RMS attitude error [deg], three seeds:
@@ -317,45 +332,46 @@ fprintf('and averaging over axes and time gives the observed floor.)\n');
 %   gym-pybullet-drones (24 kHz)  : 17.52
 %   MuJoCo (20 kHz contact)       : 17.61
 %
-% step RMS [deg]: pybullet 17.68 / 17.58, MuJoCo 17.71 / 17.66 - the two
-% native stacks agree to 0.03 deg: the loop belongs to the controller,
-% not to the engine.
+% step RMS [deg]: pybullet 17.68 / 17.58, MuJoCo 17.71 / 17.66 - the
+% two native stacks agree to 0.03 deg: the loop belongs to the
+% controller, not to the engine.
 %
-% flip: MuJoCo completes fully airborne, phi settling at 2.88 / 2.97 /
-% 2.95 s (RMS 44.39 / 44.55 / 44.51 deg - the large RMS is the
+% flip: MuJoCo completes fully airborne, $\phi$ settling at 2.88 / 2.97
+% / 2.95 s (RMS 44.39 / 44.55 / 44.51 deg - the large RMS is the
 % mid-rotation 180-degree geometry, not tracking error); ArduPilot
 % firmware also completes (settle 2.48-3.24 s); pybullet and Gazebo sit
 % in the knife-edge regime analysed in the repository (the pursuit
-% equilibrium omega = 5 sin(e/2) makes a 2 s ramp trackable only at lag
-% ~1.36 rad - completion is structurally marginal, an engine-fidelity
-% property, not a tuning matter).
+% equilibrium $\omega = 5 \sin(e/2)$ makes a 2 s ramp trackable only at
+% lag $\approx 1.36$ rad - completion is structurally marginal, an
+% engine-fidelity property, not a tuning matter).
 %
 % Every paper-stated parameter was reproduced exactly (repository
-% test-verified): Pq = 20, Pw = 4, +-4 N*m, inertia, sine 0.5 rad at
-% 1 rad/s, flip 0 -> 2*pi, noise amplitude 0.1.
+% test-verified): $P_q = 20$, $P_\omega = 4$, $\pm 4$ N m, inertia,
+% sine 0.5 rad at 1 rad/s, flip $0 \rightarrow 2\pi$, noise amplitude
+% 0.1.
 
 %% 5. Paper 1 - A Derived Result: the Digital Control-Rate Bound
 % The paper specifies no digital control rate - an implementer must
 % choose one. Derive the constraint.
 %
-% Linearise the closed loop about identity attitude (e -> 0, vec(q_err)
-% ~ e/2 per axis, gyroscopic term negligible): per axis with inertia I,
+% Linearise the closed loop about identity attitude
+% ($\mathbf{e} \rightarrow \mathbf{e}/2$ per axis, gyroscopic term
+% negligible): per axis with inertia $I$,
 %
-%   I e_ddot + Pw e_dot + (Pq/2) e = 0
+% $$I \frac{d^2 e}{dt^2} + P_\omega \frac{de}{dt} + \frac{P_q}{2} e = 0$$
 %
 % a second-order system with poles
 %
-%   lambda(1,2) = (-Pw +- sqrt(Pw^2 - 2*I*Pq)) / (2*I)
-%               = -2.5 and -6150 rad/s
+% $$\lambda_{1,2} = \frac{-P_\omega \pm \sqrt{P_\omega^2 - 2 I P_q}}{2 I} = -2.5 \;\;\mathrm{and}\;\; -6150 \;\; \mathrm{rad/s}$$
 %
 % Heavily overdamped, perfectly stable in continuous time. The danger is
-% purely the SAMPLING of the fast pole: at update period Ts a naive
-% explicit discretisation multiplies the fast mode by |1 - 6150*Ts|,
-% which exceeds 1 (divergence) until Ts < 2/6150. Exact zero-order hold
-% is borderline (rho -> 1 from below). The conservative design rule the
-% repository derives and enforces:
+% purely the SAMPLING of the fast pole: at update period $T_s$ a naive
+% explicit discretisation multiplies the fast mode by $|1 - 6150 T_s|$,
+% which exceeds 1 (divergence) until $T_s < 2/6150$. Exact zero-order
+% hold is borderline ($\rho \rightarrow 1$ from below). The
+% conservative design rule the repository derives and enforces:
 %
-%   f_control >= Pw / (margin * I_min) = 4 / (0.5 * 6.5e-4) ~ 12.3 kHz
+% $$f_{control} \geq \frac{P_\omega}{m\, I_{min}} \approx 12.3 \;\; \mathrm{kHz} \;\;\; (m = 0.5\ \mathrm{margin})$$
 
 Ac = [0 1; -Pq/(2*J(1)) -Pw/J(1)];
 fprintf('control rate    rho (explicit)   rho (exact ZOH)\n');
@@ -367,72 +383,77 @@ for f = [200 1000 10000 100000]
 end
 
 %%
-% Reading the table: a plausible 200 Hz implementation of the paper's law
-% never converges (explicit rho ~ 30 per step); even 1 kHz diverges.
-% The repository's simulators enforce the derived 12.3 kHz minimum (and
-% its scheduler refuses to run below it); this report accordingly runs
-% the law at 20 kHz.
+% Reading the table: a plausible 200 Hz implementation of the paper's
+% law never converges (explicit $\rho \approx 30$ per step); even 1 kHz
+% diverges. The repository's simulators enforce the derived 12.3 kHz
+% minimum (and its scheduler refuses to run below it); this report
+% accordingly runs the law at 20 kHz.
 
 %% 6. Paper 2 - The Full Six-Degree-of-Freedom Model (Eq. 8 of [2])
-% Paper [2] extends the attitude plant with translation. State: position
-% p, velocity v, attitude q, body rate omega; inputs: total thrust T and
-% body torque tau. Newton-Euler with thrust along body z:
+% Paper [2] extends the attitude plant with translation. State:
+% position $p$, velocity $v$, attitude $q$, body rate $\omega$; inputs:
+% total thrust $T$ and body torque $\tau$. Newton-Euler with thrust
+% along body $z$:
 %
-%   p_dot  = v                                   (definition)
-%   v_dot  = R(q) [0,0,T/m] - [0,0,g]            (Newton: f = m a)
-%   q_dot  = (1/2) q (x) [0, omega]              (Section 2.7, body form)
-%   J omega_dot = -omega x (J omega) + tau       (Euler, body frame)
+% $$\frac{dp}{dt} = v \;\;\;\mathrm{(definition)}$$
+% $$\frac{dv}{dt} = R(q)\,[0,0,T/m] - [0,0,g] \;\;\;\mathrm{(Newton:\ } F = m a\mathrm{)}$$
+% $$\frac{dq}{dt} = \frac{1}{2}\, q \otimes [ \, 0 \, ; \, \omega \, ] \;\;\;\mathrm{(body\ form,\ Section\ 2.7)}$$
+% $$J \frac{d\omega}{dt} = -\omega \times (J \omega) + \tau \;\;\;\mathrm{(Euler,\ body\ frame)}$$
 %
 % Derivations, row by row:
 %
 % * Row 2 is Newton's second law. The only forces are the total thrust
-%   (magnitude T, direction = body z-axis rotated by R(q)) and gravity.
-%   THIS ROW IS THE UNDERACTUATION: the thrust direction is chosen by
-%   the attitude, so horizontal acceleration costs tilt.
+%   (magnitude $T$, direction = body $z$-axis rotated by $R(q)$) and
+%   gravity. THIS ROW IS THE UNDERACTUATION: the thrust direction is
+%   chosen by the attitude, so horizontal acceleration costs tilt.
 %
 % * Row 3 is the body-frame kinematics derived in Section 2.7 - one
-%   omega shared with row 4, hence ONE frame for both.
+%   $\omega$ shared with row 4, hence ONE frame for both.
 %
-% * Row 4 is Euler's equation of Section 3 (tau now the only external
-%   torque; the paper also carries an external-torque input, unused in
-%   its disturbance-free study case).
+% * Row 4 is Euler's equation of Section 3 ($\tau$ now the only
+%   external torque; the paper also carries an external-torque input,
+%   unused in its disturbance-free study case).
 %
-% Hover linearisation (q ~ identity, omega ~ 0): expanding R(q) to first
-% order in the tilt components q1, q2 gives
+% Hover linearisation ($q \approx$ identity, $\omega \approx 0$):
+% expanding $R(q)$ to first order in the tilt components $q_1, q_2$
+% gives
 %
-%   v_dot ~ [ 2(T/m) q2 , -(T/m) q1 , T/m - g ]
-%   q_vec_dot ~ omega / 2
+% $$\frac{dv}{dt} \approx [ \; 2(T/m) q_2 \; ; \;\; -(T/m) q_1 \; ; \;\; T/m - g \; ]$$
+% $$\frac{d\mathbf{q}_v}{dt} \approx \omega / 2$$
 %
 % - the two seeds of paper 2's LQR models (Section 9).
 
 %% 7. Paper 2 - The Rotor Mixer (Eq. 9 of [2]) Derived
-% Four rotors at the arm ends produce T and tau. Each rotor i spins at
-% omega_i, giving thrust kf*omega_i^2 along body z and a REACTION torque
-% about body z of magnitude km*omega_i^2 whose sign alternates with the
-% propeller's direction. Rotor positions in the X-configuration:
+% Four rotors at the arm ends produce $T$ and $\tau$. Each rotor $i$
+% spins at $\omega_i$, giving thrust $k_f \omega_i^2$ along body $z$
+% and a REACTION torque about body $z$ of magnitude $k_m \omega_i^2$
+% whose sign alternates with the propeller's direction. Rotor positions
+% in the X-configuration:
 %
-%   rotor 1 at (+d,-d) front-right,  rotor 2 at (+d,+d) front-left
-%   rotor 3 at (-d,+d) rear-left,    rotor 4 at (-d,-d) rear-right
+%   rotor 1 at $(+d,-d)$ front-right,  rotor 2 at $(+d,+d)$ front-left
+%   rotor 3 at $(-d,+d)$ rear-left,    rotor 4 at $(-d,-d)$ rear-right
 %
-% Torque = sum of r_i x F_i over the rotors plus the reaction terms.
-% Computing the cross products (each F_i = kf*w_i*[0,0,1], r_i as above)
-% gives tau_x = kf*d*(w1 + w2 - w3 - w4) and
-% tau_y = kf*d*(-w1 + w2 + w3 - w4):
+% Torque $= \sum \mathbf{r}_i \times \mathbf{F}_i$ over the rotors plus
+% the reaction terms. Computing the cross products (each
+% $\mathbf{F}_i = k_f w_i [0,0,1]$ with $w_i = \omega_i^2$) gives the
+% four scalar mixing equations:
 %
-%   [ T  ]   [  kf    kf    kf    kf  ] [w1]
-%   [ tx ] = [  kfd   kfd  -kfd  -kfd ] [w2]      w_i = omega_i^2
-%   [ ty ]   [ -kfd   kfd   kfd  -kfd ] [w3]
-%   [ tz ]   [  -c     c    -c     c  ] [w4]      kfd = kf*d, c = km
+% $$T = k_f ( w_1 + w_2 + w_3 + w_4 )$$
+% $$\tau_x = k_f d \,( w_1 + w_2 - w_3 - w_4 )$$
+% $$\tau_y = k_f d \,( -w_1 + w_2 + w_3 - w_4 )$$
+% $$\tau_z = k_m \,( -w_1 + w_2 - w_3 + w_4 )$$
 %
-% Inverting this 4x4 matrix maps any (T, tau) command to rotor speeds -
-% every real flight controller contains this matrix.
+% In matrix form $[T, \tau_x, \tau_y, \tau_z] = M [w_1, w_2, w_3, w_4]$
+% with $M$ the obvious $4 \times 4$; inverting $M$ maps any
+% $(T, \tau)$ command to rotor speeds - every real flight controller
+% contains this matrix.
 %
-% SATURATION: rotor speeds live in [0, w_max], so some commands are
+% SATURATION: rotor speeds live in $[0, w_{max}]$, so some commands are
 % infeasible. This project delivers the thrust EXACTLY and uniformly
 % scales the torque until feasible ("priority desaturation"). Naive
 % per-rotor clipping instead corrupts the total thrust one-sidedly
 % (clipped rotors lose thrust, unclipped keep it) and the altitude loop
-% runs away - measured in the repository: the z-loop diverged to
+% runs away - measured in the repository: the $z$-loop diverged to
 % thousands of metres before this fix.
 
 kfd = kf*d;
@@ -445,77 +466,78 @@ fprintf('  [%.6f  %.8f  %.8f  %.8f]\n', out);
 %% 8. Paper 2 - Differential Flatness (Eqs. 11-15 of [2]) Derived
 % 8.1 The definition
 %
-% A system x_dot = f(x, u) is DIFFERENTIALLY FLAT if there is an output
-% z(t) (the flat output) such that state and input are functions of z and
-% finitely many derivatives of z:
+% A system $\dot{x} = f(x, u)$ is DIFFERENTIALLY FLAT if there is an
+% output $z(t)$ (the flat output) such that state and input are
+% functions of $z$ and finitely many derivatives of $z$:
 %
-%   x(t) = F0( z, z_dot, ..., z^(a) )
-%   u(t) = F1( z, z_dot, ..., z^(b) )
+% $$x(t) = \zeta_0( z, \dot{z}, \ldots, z^{(a)} ) \, , \;\;\; u(t) = \zeta_1( z, \dot{z}, \ldots, z^{(b)} )$$
 %
 % with NO integration of the differential equations. Consequences:
 % planning can happen entirely in the (small) output space, and any
-% smooth z(t) is automatically a valid trajectory - feasibility
+% smooth $z(t)$ is automatically a valid trajectory - feasibility
 % constraints (max thrust, max tilt) become constraints on the
-% derivatives of z.
+% derivatives of $z$.
 %
 % 8.2 The quadrotor's flat outputs
 %
-%   sigma(t) = (x, y, z, psi)
+% $$\sigma(t) = ( x, y, z, \psi )$$
 %
 % Four outputs for four inputs. WHY these four: the translational rows
-% of Eq. 8 plus gravity determine the thrust VECTOR once the
-% acceleration is known (row 2 rearranged); a vector in R^3 fixes a
-% direction (2 constraints on attitude) and its length fixes T. The
+% of the model plus gravity determine the thrust VECTOR once the
+% acceleration is known (row 2 rearranged); a vector in $R^3$ fixes a
+% direction (2 constraints on attitude) and its length fixes $T$. The
 % attitude has one remaining freedom - rotation about the thrust axis -
-% which the yaw psi fixes. Hence (x,y,z) + psi determine everything.
+% which the yaw $\psi$ fixes. Hence $(x,y,z) + \psi$ determine
+% everything.
 %
 % 8.3 The chain (Eq. 15), derived
 %
-% Given the flat outputs and derivatives (p, v, a from x,y,z; psi):
+% Given the flat outputs and derivatives ($p, v, a$ from $x,y,z$;
+% $\psi$):
 %
-% * p = (x,y,z), v = p_dot, a = p_ddot           (trivial rows)
-% * Row 2 of Eq. 8 rearranged: the required thrust vector is
+% * $p = (x,y,z)$, $v = dp/dt$, $a = d^2p/dt^2$ (trivial rows)
 %
-%   f  = m (a + g z_hat)
+% * Row 2 of the model rearranged: to accelerate with $a$, net force
+%   must be $m\,a$; forces are thrust plus gravity $(-m g \hat{z})$,
+%   so the required thrust vector is fully determined:
 %
-%   (to accelerate with a, net force must be m*a; forces are thrust plus
-%   gravity (-m g z_hat), so the thrust vector is fully determined).
+% $$\mathbf{f} = m \,( \mathbf{a} + g \hat{z} ) \;\;\;\mathrm{(the\ thrust\ vector)}$$
+% $$T_d = \|\mathbf{f}\| \;\;\;\mathrm{(total\ thrust)}, \;\;\;\; \hat{d} = \mathbf{f} / \|\mathbf{f}\| \;\;\;\mathrm{(body\ }z\mathrm{\ direction)}$$
 %
-% * T_d = ||f||                (the total-thrust command)
-% * d_hat = f/||f||            (the required body z-axis direction)
-% * attitude: R(q_d) z_hat = d_hat, yaw(q_d) = psi_d
+% * Attitude: $R(q_d)\, \hat{z} = \hat{d}$, $\mathrm{yaw}(q_d) = \psi_d$
 %
-% Differentiating q_d once more gives the reference body rate; once more
-% gives the reference torque via row 4 (the paper's full
+% Differentiating $q_d$ once more gives the reference body rate; once
+% more gives the reference torque via row 4 (the paper's full
 % parameterisation; our inner loop regulates rate to zero instead - a
-% documented simplification, second-order on the paper's own study path).
+% documented simplification, second-order on the paper's own study
+% path).
 %
 % 8.4 The reference attitude (Eqs. 19-21 of [2]), built literally
 %
-% The tilt quaternion taking z_hat onto d_hat: axis z_hat x d_hat
-% (horizontal by construction - it is the cross of z_hat with anything),
-% angle alpha = angle(z_hat, d_hat):
+% The tilt quaternion taking $\hat{z}$ onto $\hat{d}$: axis
+% $\hat{z} \times \hat{d}$ (horizontal by construction - it is the cross
+% of $\hat{z}$ with anything), angle $\alpha = \angle(\hat{z}, \hat{d})$:
 %
-%   q_pd = [ cos(alpha/2) ;
-%            sin(alpha/2) * (z_hat x d_hat)/||z_hat x d_hat|| ]
+% $$q_{pd} = [ \, \cos(\alpha/2) \, ; \;\; \sin(\alpha/2)\, (\hat{z} \times \hat{d}) / \|\hat{z} \times \hat{d}\| \, ]$$
 %
-% Because the axis is horizontal, the yaw element of q_pd is EXACTLY
-% zero - the paper's "4th element = 0" statement (scalar-first order;
-% element 4 is the z-rotation content).
+% Because the axis is horizontal, the yaw element of $q_{pd}$ is
+% EXACTLY zero - the paper's "4th element = 0" statement
+% (scalar-first order; element 4 is the $z$-rotation content).
 %
 % The yaw quaternion:
 %
-%   q_zd = [ cos(psi/2) ; 0 ; 0 ; sin(psi/2) ]
+% $$q_{zd} = [ \, \cos(\psi_d/2) \, ; \;\; 0 \, ; \;\; 0 \, ; \;\; \sin(\psi_d/2) \, ]$$
 %
 % The composition (Eq. 21):
 %
-%   q_d = q_pd (x) q_zd
+% $$q_d = q_{pd} \otimes q_{zd}$$
 %
-% The ONLY degeneracy: ||f|| = 0 (free fall) - attitude stops mattering
-% to the motion. (Our first implementation built q_d by a different
-% construction whose comment claimed equivalence; independent validation
-% measured a twist about the thrust axis growing quadratically with
-% tilt, and it was replaced by this literal composition.)
+% The ONLY degeneracy: $\|\mathbf{f}\| = 0$ (free fall) - attitude
+% stops mattering to the motion. (Our first implementation built $q_d$
+% by a different construction whose comment claimed equivalence;
+% independent validation measured a twist about the thrust axis growing
+% quadratically with tilt, and it was replaced by this literal
+% composition.)
 %
 % 8.5 Numerical verification
 
@@ -536,60 +558,63 @@ fprintf('  tilt quaternion yaw element %.2e\n', maxz);
 %% 9. Paper 2 - The Double-Loop LQR (Eqs. 16-23 of [2]) Derived
 % 9.1 Why two loops
 %
-% The plant is cascaded: position responds slowly THROUGH attitude (row
-% 2), attitude responds fast to torque (rows 3-4). The controller mirrors
-% this: an outer position loop computes the acceleration command, the
-% flatness map converts it to (T_d, q_d), an inner attitude loop tracks
-% q_d with torque. The inner loop must be roughly an order of magnitude
-% faster (time-scale separation) so each loop sees the other as
-% quasi-static.
+% The plant is cascaded: position responds slowly THROUGH attitude
+% (row 2), attitude responds fast to torque (rows 3-4). The controller
+% mirrors this: an outer position loop computes the acceleration
+% command, the flatness map converts it to $(T_d, q_d)$, an inner
+% attitude loop tracks $q_d$ with torque. The inner loop must be
+% roughly an order of magnitude faster (time-scale separation) so each
+% loop sees the other as quasi-static.
 %
 % 9.2 The two linear models
 %
-% Inner loop (Eq. 17): from the hover linearisation q_vec_dot = omega/2
-% and omega_dot = J^-1 tau, the state x = [q_vec; omega] obeys
+% Inner loop (Eq. 17): from the hover linearisation
+% $d\mathbf{q}_v/dt = \omega/2$ and $d\omega/dt = J^{-1}\tau$, the
+% state $x = [\mathbf{q}_v \, ; \, \omega]$ obeys $\dot{x} = A x + B u$
+% with
 %
-%   x_dot = A x + B u
-%   A = [ 0(3x3)  (1/2)I ]      B = [ 0(3x3) ]
-%       [ 0(3x3)   0     ]          [ J^-1   ]
+% $$A = [ \, 0 \;\;\; \frac{1}{2} I \, ; \;\; 0 \;\;\; 0 \, ] \;\;\;\; B = [ \, 0 \, ; \, J^{-1} \, ]$$
 %
-% Outer loop (Eq. 18), per axis, state [p; p_dot], input = acceleration:
+% Outer loop (Eq. 18), per axis, state $[p \, ; \, \dot{p}]$, input =
+% acceleration:
 %
-%   A = [0 1; 0 0],      B = [0; 1]
+% $$A = [ \, 0 \;\;\; 1 \, ; \;\; 0 \;\;\; 0 \, ] \;\;\;\; B = [ \, 0 \, ; \, 1 \, ]$$
 %
 % 9.3 The LQR design (Eqs. 22-23)
 %
 % Minimise the quadratic cost
 %
-%   J_cost = (1/2) integral of ( x'Qx + u'Ru ) dt   over [0, infinity)
+% $$J_{cost} = \frac{1}{2} \int_0^{\infty} ( \, x^T Q x + u^T R u \, )\, dt$$
 %
-% Q penalises state error (tracking tightness), R penalises control
-% effort (actuator cost). The optimal control is linear, u = -K x, with
+% $Q$ penalises state error (tracking tightness), $R$ penalises control
+% effort (actuator cost). The optimal control is linear, $u = -K x$,
+% with
 %
-%   K = inv(R) B' P
+% $$K = R^{-1} B^T P$$
 %
-% where P solves the algebraic Riccati equation
+% where $P$ solves the algebraic Riccati equation
 %
-%   P A + A' P - P B inv(R) B' P + Q = 0
+% $$P A + A^T P - P B R^{-1} B^T P + Q = 0$$
 %
 % (derived in optimal-control theory from the Hamilton-Jacobi-Bellman /
 % two-point boundary value conditions; solving this ONE matrix equation
-% replaces hand-tuning six gains). Here P is computed by Hamiltonian
-% eigendecomposition - base MATLAB, no toolbox: the ARE's solutions are
+% replaces hand-tuning six gains). Here $P$ is computed by Hamiltonian
+% eigendecomposition - base MATLAB, no toolbox: the ARE's solution is
 % the invariant subspace of
 %
-%   H = [ A , -B inv(R) B' ; -Q , -A' ]
+% $$H = [ \, A \, , \; -B R^{-1} B^T \, ; \; -Q \, , \; -A^T \, ]$$
 %
-% associated with the stable eigenvalues; P = X2 inv(X1) for that
-% subspace's blocks [X1; X2].
+% associated with the stable eigenvalues; $P = X_2 X_1^{-1}$ for that
+% subspace's blocks $[X_1 \, ; \, X_2]$.
 %
 % The paper gives NO numeric weights (it says only "tuned adaptive").
-% Our documented tuning: outer Q = diag(49, 42), R = 1 per axis;
-% inner Q = diag(100,100,100,20,20,20), R = 200*I3. Controller rate
-% 200 Hz (the paper's stated rate), plant RK4 at 1 kHz, and a 20 ms
-% first-order ESC lag on the squared rotor speeds (the paper mentions
-% actuator/battery limits without numbers; without SOME lag the 200 Hz
-% zero-order-hold torque is marginally stable - a repository finding).
+% Our documented tuning: outer $Q = \mathrm{diag}(49, 42)$, $R = 1$ per
+% axis; inner $Q = \mathrm{diag}(100,100,100,20,20,20)$, $R = 200 I_3$.
+% Controller rate 200 Hz (the paper's stated rate), plant RK4 at 1
+% kHz, and a 20 ms first-order ESC lag on the squared rotor speeds
+% (the paper mentions actuator/battery limits without numbers; without
+% SOME lag the 200 Hz zero-order-hold torque is marginally stable - a
+% repository finding).
 
 Qi = diag([100 100 100 20 20 20]); Ri = 200*eye(3);
 Ai = [zeros(3) 0.5*eye(3); zeros(3) zeros(3)];
@@ -603,13 +628,13 @@ fprintf('LQR designs: inner max pole real part %+.4f, outer %+.4f (Hurwitz)\n', 
 
 %% 10. Paper 2 - The Study Case and Results
 % The paper's experiment (Section V): track a circular path at fixed
-% altitude 1 m, starting from (-1, 0, 0), controller at 200 Hz, actuator
-% limits active. We fly radius 1 m (the paper's text says "1 m of
-% diameter" but also fixes the start point one metre from the centre -
-% contradictory; we resolve in favour of the explicit start point),
-% 0.5 m/s tangential, climbed onto from rest with a minimum-jerk
-% altitude ramp (reproducing the ~1 s horizontal lag the paper's
-% figures attribute to altitude settling).
+% altitude 1 m, starting from $(-1, 0, 0)$, controller at 200 Hz,
+% actuator limits active. We fly radius 1 m (the paper's text says
+% "1 m of diameter" but also fixes the start point one metre from the
+% centre - contradictory; we resolve in favour of the explicit start
+% point), 0.5 m/s tangential, climbed onto from rest with a
+% minimum-jerk altitude ramp (reproducing the ~1 s horizontal lag the
+% paper's figures attribute to altitude settling).
 %
 % THIS MATLAB RUN:
 
@@ -644,28 +669,29 @@ fprintf('with paper noise +-0.1    %5.1f  %5.1f  %5.1f  %5.1f   %5.2f N  (cm)\n'
 % 11.1 Why minimum SNAP
 %
 % Flatness makes the input depend on derivatives of the outputs: row 2
-% needs a (2nd derivative); the attitude reference differentiates to
+% needs $a$ (2nd derivative); the attitude reference differentiates to
 % rates (3rd derivative = jerk); rates to torques (4th derivative =
 % snap). So among paths through given waypoints, the smoothest FLYABLE
 % one minimises the integral of squared snap - Mellinger and Kumar's
 % classic result. The Euler-Lagrange equation for
 %
-%   min integral ||p''''(t)||^2 dt
+% $$\min \int_0^T \| \frac{d^4 p}{dt^4} \|^2 dt$$
 %
-% is d^8 p/dt^8 = 0 per axis: piecewise DEGREE-7 polynomials.
+% is $d^8 p / dt^8 = 0$ per axis: piecewise DEGREE-7 polynomials.
 %
 % 11.2 The boundary-value problem per segment
 %
 % Each segment gets: waypoints at both ends, corridor-tangent VELOCITY
-% at intermediate waypoints (without pinning, minimising only snap lets
-% long segments loiter and then teleport - position is four integrals
-% from the cost, so slow huge excursions are nearly free; measured in
-% the repository: a -5 m bulge then a 0.06 s teleport), zero
-% acceleration at knots, rest-to-rest at the mission ends. That is 6
-% constraints on 8 coefficients; the remaining 2 freedoms minimise the
-% segment's snap integral (a 2x2 solve in normalised time - solving in
-% raw time spans 10+ orders of magnitude and reproduces the pathology
-% from conditioning alone; another repository finding).
+% at intermediate waypoints (without pinning, minimising only snap
+% lets long segments loiter and then teleport - position is four
+% integrals from the cost, so slow huge excursions are nearly free;
+% measured in the repository: a $-5$ m bulge then a 0.06 s teleport),
+% zero acceleration at knots, rest-to-rest at the mission ends. That
+% is 6 constraints on 8 coefficients; the remaining 2 freedoms
+% minimise the segment's snap integral (a $2 \times 2$ solve in
+% normalised time - solving in raw time spans 10+ orders of magnitude
+% and reproduces the pathology from conditioning alone; another
+% repository finding).
 %
 % 11.3 THIS MATLAB RUN
 
@@ -687,9 +713,9 @@ fprintf('waypoints and times - the flatness argument measured directly.\n');
 % 11.4 REPOSITORY results for the extensions (measured)
 %
 % figure-8: 4.7 cm 3D RMS on the ideal model AND 4.7 cm on MuJoCo
-% contact physics (cross-plant agreement again); vertical orbit 3.9 cm;
-% minimum-snap waypoint tour 6.1 cm vs minimum-jerk 8.1 cm (25 percent
-% better) on identical waypoints and times; all with no rotor
+% contact physics (cross-plant agreement again); vertical orbit 3.9
+% cm; minimum-snap waypoint tour 6.1 cm vs minimum-jerk 8.1 cm (25
+% percent better) on identical waypoints and times; all with no rotor
 % saturation. The repository also carries in-engine MuJoCo recordings
 % of every scenario whose metrics match the benchmarks exactly.
 
@@ -722,9 +748,9 @@ fprintf('recordings bit-identical to benchmarks, MATLAB cross-checked vs reposit
 % * Paper 1's quaternion attitude law was reproduced exactly (gains,
 %   saturation, noise, scenarios), extended to a six-degree-of-freedom
 %   flight stack, and flown unchanged on four simulation stacks
-%   including real ArduPilot firmware - cross-engine agreement 0.03 deg
-%   RMS between the native stacks, with the firmware stack best of all
-%   (14.7 deg on sine).
+%   including real ArduPilot firmware - cross-engine agreement 0.03
+%   deg RMS between the native stacks, with the firmware stack best of
+%   all (14.7 deg on sine).
 %
 % * A derived digital-stability bound - minimum control rate 12.3 kHz
 %   for these gains - explains why naive discrete implementations of
