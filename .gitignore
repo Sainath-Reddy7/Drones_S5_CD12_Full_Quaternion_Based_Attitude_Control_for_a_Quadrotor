@@ -24,3 +24,7 @@ results/flatness_render/
 .zcode/
 Temp/
 *_renderpuppet.tmp.xml
+
+# MATLAB publish intermediates (final PDF is built by matlab/make_final_pdf.py)
+matlab/published/*
+!matlab/published/project_report_final.pdf
