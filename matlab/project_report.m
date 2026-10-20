@@ -13,11 +13,6 @@
 %     Tracking using a Differential Flatness-Quaternion based Approach",
 %     IEEE, 2017.
 
-%% Initialisation
-clear; clc; close all; rng(1);
-figdir = fullfile(fileparts(mfilename('fullpath')), 'figures');
-if ~exist(figdir, 'dir'); mkdir(figdir); end
-
 %% 1. Introduction and Problem Statement
 % A quadrotor is a rigid body acted on by gravity and by four propeller
 % thrusts fixed to the body. Its configuration has six degrees of freedom
@@ -64,12 +59,15 @@ if ~exist(figdir, 'dir'); mkdir(figdir); end
 % * thrust coefficient $k_f = 3.0\times10^{-9}$ N per $\mathrm{(rad/s)^2}$, $k_m = 0.016\,k_f$
 % * thrust-to-weight ratio 4 (per-rotor maximum thrust 1.95 N)
 
+clear; clc; close all; rng(1);
+figdir = fullfile(fileparts(mfilename('fullpath')), 'figures');
+if ~exist(figdir, 'dir'); mkdir(figdir); end
 m = 0.2; g = 9.81; kf = 3e-9; km = 0.016*kf; d = 0.15/sqrt(2);
 w_max = 1.95/kf;
 J  = diag([6.5e-4 6.5e-4 1.2e-3]);
 Pq = 20; Pw = 4; tau_max = 4; noise_amp = 0.1;
 
-%% 2. Mathematical Preliminaries - Quaternion Algebra from Scratch
+%% 2. Mathematical Preliminaries - Quaternion Algebra
 % 2.1 Why not Euler angles or rotation matrices
 %
 % An attitude is a rotation. Three popular representations exist:
@@ -210,7 +208,7 @@ fprintf('Quaternion algebra verification (200 random trials): max error %.2e\n',
 %   no numerical differentiation of the attitude is ever needed,
 % * the whole law can live in quaternion space.
 
-%% 4. Paper 1 - The Control Law Derived (Eqs. 19-21 of [1])
+%% 4. Paper 1 - Derivation of the Control Law (Eqs. 19-21 of [1])
 % 4.1 The error quaternion
 %
 % With reference attitude $q_{ref}$ and measured attitude $q_m$ (the
@@ -337,7 +335,7 @@ fprintf('and averaging over axes and time gives the observed floor.)\n');
 % sine 0.5 rad at 1 rad/s, flip $0 \rightarrow 2\pi$, noise amplitude
 % 0.1.
 
-%% 5. Paper 1 - A Derived Result: the Digital Control-Rate Bound
+%% 5. Paper 1 - The Digital Control-Rate Bound
 % The paper specifies no digital control rate - an implementer must
 % choose one. Derive the constraint.
 %
@@ -376,7 +374,7 @@ end
 % minimum (and its scheduler refuses to run below it); this report
 % accordingly runs the law at 20 kHz.
 
-%% 6. Paper 2 - The Full Six-Degree-of-Freedom Model (Eq. 8 of [2])
+%% 6. Paper 2 - The Six-Degree-of-Freedom Model (Eq. 8 of [2])
 % Paper [2] extends the attitude plant with translation. State:
 % position $p$, velocity $v$, attitude $q$, body rate $\omega$; inputs:
 % total thrust $T$ and body torque $\tau$. Newton-Euler with thrust
@@ -410,7 +408,7 @@ end
 %
 % - the two seeds of paper 2's LQR models (Section 9).
 
-%% 7. Paper 2 - The Rotor Mixer (Eq. 9 of [2]) Derived
+%% 7. Paper 2 - The Rotor Mixer (Eq. 9 of [2])
 % Four rotors at the arm ends produce $T$ and $\tau$. Each rotor $i$
 % spins at $\omega_i$, giving thrust $k_f \omega_i^2$ along body $z$
 % and a REACTION torque about body $z$ of magnitude $k_m \omega_i^2$
@@ -450,7 +448,7 @@ out = Mmix*wT;
 fprintf('Mixer round-trip: command [1.5 N; 0.01; -0.005; 0.002] delivered as\n');
 fprintf('  [%.6f  %.8f  %.8f  %.8f]\n', out);
 
-%% 8. Paper 2 - Differential Flatness (Eqs. 11-15 of [2]) Derived
+%% 8. Paper 2 - Differential Flatness (Eqs. 11-15 of [2])
 % 8.1 The definition
 %
 % A system $\dot{x} = f(x, u)$ is DIFFERENTIALLY FLAT if there is an
@@ -542,7 +540,7 @@ fprintf('Flatness map verification (100 trials):\n');
 fprintf('  body-z alignment error      %.2e\n', maxal);
 fprintf('  tilt quaternion yaw element %.2e\n', maxz);
 
-%% 9. Paper 2 - The Double-Loop LQR (Eqs. 16-23 of [2]) Derived
+%% 9. Paper 2 - The Double-Loop LQR (Eqs. 16-23 of [2])
 % 9.1 Why two loops
 %
 % The plant is cascaded: position responds slowly THROUGH attitude
@@ -613,7 +611,7 @@ Po = riccati_ham(Ao, Bo, Qo, Ro); Ko = Ro\Bo'*Po;
 fprintf('LQR designs: inner max pole real part %+.4f, outer %+.4f (Hurwitz)\n', ...
         max(real(eig(Ai - Bi*Ki))), max(real(eig(Ao - Bo*Ko))));
 
-%% 10. Paper 2 - The Study Case and Results
+%% 10. Paper 2 - Study Case and Results
 % The paper's experiment (Section V): track a circular path at fixed
 % altitude 1 m, starting from $(-1, 0, 0)$, controller at 200 Hz,
 % actuator limits active. We fly radius 1 m (the paper's text says
@@ -706,7 +704,7 @@ fprintf('waypoints and times - the flatness argument measured directly.\n');
 % saturation. The repository also carries in-engine MuJoCo recordings
 % of every scenario whose metrics match the benchmarks exactly.
 
-%% 12. Project Verification Culture (how the numbers are trusted)
+%% 12. Verification Methodology
 % * 85 tests in the repository (83 pass in the canonical environment;
 %   two skips require simulator stacks not installed there): quaternion
 %   conventions, plant behaviour, mixer round-trips and desaturation,
@@ -731,7 +729,7 @@ fprintf('waypoints and times - the flatness argument measured directly.\n');
 fprintf('Verification: 85 tests (83 pass), equation-level review (17/17 confirmed),\n');
 fprintf('recordings bit-identical to benchmarks, MATLAB cross-checked vs repository.\n');
 
-%% 13. The Six-Degree-of-Freedom Extension (pysitl)
+%% 13. Six-Degree-of-Freedom Extension (pysitl)
 % The base paper needs no mass or geometry (attitude only), so the
 % repository DERIVED the airframe from the stated inertia: the ratio
 % I_zz/I_x ~ 1.85 matches a planar-X quadrotor with light arms,
@@ -751,7 +749,7 @@ fprintf('recordings bit-identical to benchmarks, MATLAB cross-checked vs reposit
 % This extension proves the frozen law survives integration into a
 % realistic multi-rate flight stack.
 
-%% 14. Interactive Simulators (live, keyboard)
+%% 14. Interactive Simulators
 % Two live simulators ship with the repository as desktop launchers:
 %
 % * PYBULLET INTERACTIVE (gym-pybullet-drones, 24 kHz): the paper's
@@ -775,7 +773,7 @@ fprintf('recordings bit-identical to benchmarks, MATLAB cross-checked vs reposit
 % disabled, but on the pinned plant the flip never stalls past 180
 % degrees of lag - measured: peak 180 deg, final error < 10 deg).
 
-%% 15. Simulation Recordings Catalogue (MuJoCo and GymPyBullet)
+%% 15. Simulation Recording Catalogue (MuJoCo and GymPyBullet)
 % Every scenario has an ANIMATED RECORDING in the repository
 % (results/recordings/, GIF format; regenerate with
 % python -m sim.mujoco.record, python -m flatness.record_mujoco and
@@ -785,11 +783,11 @@ fprintf('recordings bit-identical to benchmarks, MATLAB cross-checked vs reposit
 % itself. Two families are documented separately below; a
 % representative mid-run frame accompanies each entry (the full
 % animation is in the referenced file).
-%
-% 15.1 MuJoCo in-engine renders (offscreen renderer, 20 kHz contact
-% physics, chase/orbit camera; solid colour-coded drone, RGB triad =
-% desired attitude, yellow ball = moving reference point, coloured
-% markers = path):
+
+%% 15.1 MuJoCo in-engine renders (offscreen renderer, 20 kHz contact physics)
+% Chase/orbit camera, solid colour-coded drone, RGB triad = desired
+% attitude, yellow ball = moving reference point, coloured markers =
+% path:
 %
 % * M1 - mujoco_step_RENDER.gif (125 frames). Paper-1 STEP test on
 %   MuJoCo. Drone pinned at a fixed stage point with live attitude;
@@ -816,41 +814,44 @@ fprintf('recordings bit-identical to benchmarks, MATLAB cross-checked vs reposit
 %   waypoint mission on MuJoCo: red/blue waypoint spheres, amber
 %   path, drone flying the tour; 3D RMS 6.1 cm.
 %
-%% Recording frame: rec_mujoco_step_RENDER.png
+
+%% 15.2 Figure M1 - paper-1 step test, MuJoCo in-engine render
+% Mid-run frame of the paper-1 STEP test on MuJoCo: the drone is
+% pinned at a fixed stage point with live attitude; the RGB triad
+% snaps 57.3 deg at each step onset and the arms chase onto it (RMS
+% 17.71 deg; full animation: results/recordings/mujoco_step_RENDER.gif).
 close all
 show_img('rec_mujoco_step_RENDER.png', [12 9.5]);
-fprintf('frame: rec_mujoco_step_RENDER.png\n');
-%
-% Figure M1: mid-run frame of the STEP recording (full animation:
-% results/recordings/mujoco_step_RENDER.gif).
-%
-%% Recording frame: rec_mujoco_flatness_RENDER.png
+fprintf('Figure M1 embedded.\n');
+%% 15.3 Figure M4 - paper-2 circle study case, MuJoCo in-engine render
+% Mid-run frame of the paper-2 circle study case on MuJoCo contact
+% physics: the drone chases the yellow reference ball around the
+% orange 1 m ring (radial RMS 2.8 cm; full animation:
+% results/recordings/mujoco_flatness_RENDER.gif).
 close all
 show_img('rec_mujoco_flatness_RENDER.png', [12 9.5]);
-fprintf('frame: rec_mujoco_flatness_RENDER.png\n');
-%
-% Figure M4: mid-run frame of the flatness circle recording (full
-% animation: results/recordings/mujoco_flatness_RENDER.gif).
-%
-% 15.2 MuJoCo path-trace animations (drawn from the benchmark CSV
-% logs by make_recordings.py; color-coded drone frame vs dashed RGB
-% reference triad, live quaternion error):
+fprintf('Figure M4 embedded.\n');
+
+%% 15.4 MuJoCo path-trace animations (benchmark log replay)
+% Drawn from the benchmark CSV logs by make_recordings.py; color-coded
+% drone frame vs dashed RGB reference triad, live quaternion error:
 %
 % * M7 - mujoco_step.gif, M8 - mujoco_sine.gif, M9 - mujoco_flip.gif
 %   (paper-1 tests, log-replay view)
 % * M10 - flatness_mujoco_circle.gif (paper-2 circle, log view)
 %
-%% Recording frame: rec_mujoco_flip.png
+
+%% 15.5 Figure M9 - paper-1 flip path-trace, MuJoCo log replay
+% Mid-run frame of the paper-1 FLIP path-trace on MuJoCo: the
+% rotation unwinds through the full 360 deg with no gimbal lock and
+% settles in 2.88 s (full animation: results/recordings/mujoco_flip.gif).
 close all
 show_img('rec_mujoco_flip.png', [10 8]);
-fprintf('frame: rec_mujoco_flip.png\n');
-%
-% Figure M9: mid-run frame of the flip path-trace (full animation:
-% results/recordings/mujoco_flip.gif).
-%
-% 15.3 GymPyBullet materials (gym-pybullet-drones, 24 kHz, custom
-% paper-vehicle URDF colour-coded red-front/blue-rear; documented
-% separately from MuJoCo - different engine, different adapter):
+fprintf('Figure M9 embedded.\n');
+
+%% 15.6 GymPyBullet recordings (gym-pybullet-drones, 24 kHz)
+% Custom paper-vehicle URDF colour-coded red-front/blue-rear, documented
+% separately from MuJoCo - different engine, different adapter:
 %
 % * G1 - gym_pybullet_step.gif (120 frames). Paper-1 STEP on
 %   gym-pybullet-drones: RMS 17.68 deg - within 0.03 deg of MuJoCo.
@@ -862,16 +863,17 @@ fprintf('frame: rec_mujoco_flip.png\n');
 %   completing; an engine-fidelity property of the sampled fast pole,
 %   not a controller failure (same gains, same references as M3).
 %
-%% Recording frame: rec_gym_pybullet_step.png
+
+%% 15.7 Figure G1 - paper-1 step test, GymPyBullet log replay
+% Mid-run frame of the paper-1 STEP test on gym-pybullet-drones:
+% solid red-front/blue-rear body axes chase the dashed reference
+% triad (RMS 17.68 deg - within 0.03 deg of MuJoCo; full animation:
+% results/recordings/gym_pybullet_step.gif).
 close all
 show_img('rec_gym_pybullet_step.png', [10 8]);
-fprintf('frame: rec_gym_pybullet_step.png\n');
-%
-% Figure G1: mid-run frame of the GymPyBullet STEP path-trace (full
-% animation: results/recordings/gym_pybullet_step.gif).
-%
-% 15.4 Ideal-model path traces (Eq. 8 plant, for cross-plant
-% comparison):
+fprintf('Figure G1 embedded.\n');
+
+%% 15.8 Ideal-model path traces (Eq. 8 plant, cross-plant comparison)
 %
 % * flatness_ideal_circle.gif, flatness_figure8.gif,
 %   flatness_orbit.gif, flatness_waypoints_minsnap.gif,
@@ -880,27 +882,25 @@ fprintf('frame: rec_gym_pybullet_step.png\n');
 %   shows the A/B difference visibly (min-snap hugs the dashed
 %   reference tighter).
 %
-%% Recording frame: rec_flatness_waypoints_minsnap.png
+
+%% 15.9 Figure E1 - minimum-snap waypoint tour, ideal model
+% Mid-run frame of the minimum-snap waypoint tour on the ideal model:
+% the flown path hugs the dashed reference through the waypoint
+% corridor (3D RMS 0.035 m; full animation:
+% results/recordings/flatness_waypoints_minsnap.gif).
 close all
 show_img('rec_flatness_waypoints_minsnap.png', [10 8]);
-fprintf('frame: rec_flatness_waypoints_minsnap.png\n');
-%
-% Figure E1: mid-run frame of the min-snap waypoint tour on the ideal
-% model (full animation: results/recordings/flatness_waypoints_minsnap.gif).
-%
-%% Recording frame: rec_flatness_waypoints_minjerk.png
+fprintf('Figure E1 embedded.\n');
+%% 15.10 Figure E2 - minimum-jerk waypoint tour, ideal model
+% The same tour flown minimum-JERK (A/B control): visibly looser
+% than Figure E1 - the min-snap objective's tighter corridor
+% compliance is directly visible (full animation:
+% results/recordings/flatness_waypoints_minjerk.gif).
 close all
 show_img('rec_flatness_waypoints_minjerk.png', [10 8]);
-%
-% Figure E2: the same tour flown minimum-JERK (A/B control; full
-% animation: results/recordings/flatness_waypoints_minjerk.gif) -
-% visibly looser than Figure E1.
+fprintf('Figure E2 embedded.\n');
 
-%% Catalogue end
-% (flush cell: publish defers figure capture until later code runs)
-fprintf('recording catalogue: all frames embedded\n');
-
-%% 16. Cross-Stack Comparison (all repository results, 3 seeds)
+%% 16. Cross-Stack Comparison (3 seeds)
 % The frozen paper-1 law, identical references and noise, on four
 % stacks (from results/comparison.md - sine RMS attitude error [deg]):
 %
@@ -916,8 +916,9 @@ fprintf('recording catalogue: all frames embedded\n');
 % Paper 2 on three plants: circle radial RMS 2.7 cm (ideal), 2.8 cm
 % (MuJoCo), 3.7 cm (MuJoCo + full noise); figure-8 4.7 cm on BOTH
 % the ideal model and MuJoCo.
+close all force; drawnow;
 
-%% 17. Engineering Findings, Limitations
+%% 17. Engineering Findings and Limitations
 % 17.1 Consolidated findings (all measured in the repository)
 %
 % * F1 - Digital control-rate bound: a plausible 200 Hz discrete
@@ -998,7 +999,7 @@ fprintf('recording catalogue: all frames embedded\n');
 % [5] J. Cariño, H. Abaunza, P. Castillo, "Quadrotor Quaternion
 % Control", 2015. (quaternion cascade ancestry of paper 2)
 
-%% Appendix A - Completeness Audit (what this report includes)
+%% Appendix A - Completeness Audit
 % Checked against the repository at the time of writing:
 %
 % MATLAB implementation: Sections 2-11 code + Appendix B functions -
