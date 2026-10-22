@@ -149,6 +149,11 @@ def build_print_html(html: str, pagemap=None) -> str:
         html = re.sub(r'<h2 id="1">([^<]+)</h2>', r'<h1 id="1">\1</h1>',
                       html, count=1)
         html = re.sub(r'(<h2 id="2">)', toc + r"\n\1", html, count=1)
+        # the prepended cover page already carries the course block, roster,
+        # base papers and the logo - drop those duplicates from the printed
+        # title page (kept in the .m/.mlx cover)
+        html = re.sub(r"(</h1>)\s.*?(<h2>Contents</h2>)", r"\1\n\2", html,
+                      count=1, flags=re.S)
     # 1. drop the flush-tag output blocks (publish mechanics, not content)
     html = re.sub(r'<pre class="codeoutput">Figure [MGE]\d+ embedded\.\s*'
                   r'</pre>\s*', "", html)
