@@ -23,51 +23,88 @@
 %   LQR (Eq. 22-23)              : cost and Riccati equation give u = -Lx
 %
 %
-%   Eq.  What it is  Where it comes from
-%   (1)  Quaternion definition  Definition
-%   (2)  Quaternion product  Rules i^2=j^2=k^2=ijk=-1
-%   (3)  Conjugate, norm, inverse  Eq. (2) applied to q\otimes q^*
-%   (4)  Rotation matrix R_q  Eq. (2) and (3) applied to q\otimes v\otimes q^*
-%   (5)  Axis-angle form of q  Eq. (4) compared with Rodrigues' rotation formula
-%   (6)  \dot q=\frac12 q\otimes\omega  Small rotation in time dt
-%   (7)  Euler angles to/from quaternion  Multiply three axis quaternions; compare with Eq. (4)
-%   (8)  Full nonlinear dynamics  Newton's law + Euler's rotation equation
-%   (9)  Motor speeds → thrust & torques  Rotor physics (force × arm)
-%   (10)  Linear model at hover  Eq. (8) with small-angle approximation
-%   (11),(12)  Definition of differential flatness  Definition
-%   (13),(14)  The four flat outputs  Definition + trivial derivatives
-%   (15)  Desired pitch/roll from acceleration  Translation part of Eq. (8) written with Euler angles
-%   (16)  General linear state-space  Definition
-%   (17)  Attitude state-space  Eq. (10) rotation part
-%   (18)  Position state-space  Eq. (10) translation part
-%   (19)–(21)  Desired quaternion q_d  Eq. (5) and (2)
-%   (22)  LQR cost function  Definition (design choice)
-%   (23)  Riccati equation  Minimising Eq. (22) subject to Eq. (16)
+% Eq.  —  What it is  —  Where it comes from
+%
+% * (1)  —  Quaternion definition  —  Definition
+%
+% * (2)  —  Quaternion product  —  Rules $i^2=j^2=k^2=ijk=-1$
+%
+% * (3)  —  Conjugate, norm, inverse  —  Eq. (2) applied to $q\otimes q^*$
+%
+% * (4)  —  Rotation matrix $R_q$  —  Eq. (2) and (3) applied to $q\otimes v\otimes q^*$
+%
+% * (5)  —  Axis–angle form of $q$  —  Eq. (4) compared with Rodrigues' rotation formula
+%
+% * (6)  —  $\dot q=\frac12 q\otimes\omega$  —  Small rotation in time $dt$
+%
+% * (7)  —  Euler angles to/from quaternion  —  Multiply three axis quaternions; compare with Eq. (4)
+%
+% * (8)  —  Full nonlinear dynamics  —  Newton's law + Euler's rotation equation
+%
+% * (9)  —  Motor speeds → thrust & torques  —  Rotor physics (force × arm)
+%
+% * (10)  —  Linear model at hover  —  Eq. (8) with small-angle approximation
+%
+% * (11),(12)  —  Definition of differential flatness  —  Definition
+%
+% * (13),(14)  —  The four flat outputs  —  Definition + trivial derivatives
+%
+% * (15)  —  Desired pitch/roll from acceleration  —  Translation part of Eq. (8) written with Euler angles
+%
+% * (16)  —  General linear state-space  —  Definition
+%
+% * (17)  —  Attitude state-space  —  Eq. (10) rotation part
+%
+% * (18)  —  Position state-space  —  Eq. (10) translation part
+%
+% * (19)–(21)  —  Desired quaternion $q_d$  —  Eq. (5) and (2)
+%
+% * (22)  —  LQR cost function  —  Definition (design choice)
+%
+% * (23)  —  Riccati equation  —  Minimising Eq. (22) subject to Eq. (16)
 %
 %
 
 %% 0.1 Symbols Used in the Whole Paper
 %
 %
-%   Symbol  Meaning
-%   p\in{R}^3  Position of the drone in the inertial (ground) frame: [x,y,z]^T
-%   \dot p, \ddot p  Velocity, acceleration
-%   q\in{H}  Unit quaternion = orientation of the drone body w.r.t. the ground frame
-%   q_0  Scalar (real) part of q
-%   \bar{q}=[q_1,q_2,q_3]^T  Vector (imaginary) part of q
-%   \omega\in{R}^3  Angular velocity in the body frame
-%   m  Mass of the drone
-%   J  Inertia matrix (3×3) in the body frame
-%   g  Gravity, 9.81 \mathrm{m/s}^2; \bar{g}=[0,0,-g]^T
-%   T  Total thrust (force along the body z-axis)
-%   \tau=[\tau_x,\tau_y,\tau_z]^T  Torques about the body axes (roll, pitch, yaw)
-%   \phi,\theta,\psi  Roll, pitch, yaw (Euler angles)
-%   \omega_i  Speed of rotor i (i=1\ldots4)
-%   k_i  Thrust coefficient of rotor i
-%   l  Distance from centre of mass to rotor axis (arm length)
-%   {X}=[X_1,X_2,X_3,X_4]^T  Flat output =[x,y,z,\psi]^T
-%   A,B,C  State-space matrices
-%   Q,R,P,L  LQR weights, Riccati solution, feedback gain
+% Symbol  —  Meaning
+%
+% * $p\in{R}^3$  —  Position of the drone in the inertial (ground) frame: $[x,y,z]^T$
+%
+% * $\dot p, \ddot p$  —  Velocity, acceleration
+%
+% * $q\in{H}$  —  Unit quaternion = orientation of the drone body w.r.t. the ground frame
+%
+% * $q_0$  —  Scalar (real) part of $q$
+%
+% * $\bar{q}=[q_1,q_2,q_3]^T$  —  Vector (imaginary) part of $q$
+%
+% * $\omega\in{R}^3$  —  Angular velocity in the body frame
+%
+% * $m$  —  Mass of the drone
+%
+% * $J$  —  Inertia matrix (3×3) in the body frame
+%
+% * $g$  —  Gravity, $9.81 \mathrm{m/s}^2$; $\bar{g}=[0,0,-g]^T$
+%
+% * $T$  —  Total thrust (force along the body $z$-axis)
+%
+% * $\tau=[\tau_x,\tau_y,\tau_z]^T$  —  Torques about the body axes (roll, pitch, yaw)
+%
+% * $\phi,\theta,\psi$  —  Roll, pitch, yaw (Euler angles)
+%
+% * $\omega_i$  —  Speed of rotor $i$ ($i=1\ldots4$)
+%
+% * $k_i$  —  Thrust coefficient of rotor $i$
+%
+% * $l$  —  Distance from centre of mass to rotor axis (arm length)
+%
+% * ${X}=[X_1,X_2,X_3,X_4]^T$  —  Flat output $=[x,y,z,\psi]^T$
+%
+% * $A,B,C$  —  State-space matrices
+%
+% * $Q,R,P,L$  —  LQR weights, Riccati solution, feedback gain
 %
 % NOTE: The paper sometimes numbers quaternion elements 1–4 (e.g. $q_{4zd}$) and sometimes 0–3. In this file I always use $q_0,q_1,q_2,q_3$, with $q_3$ = the $z$-component.
 %
@@ -75,7 +112,7 @@
 
 %% 1. Quaternion Mathematics (Eq. 1 – 7)
 %
-% Why quaternions at all? Euler angles $(\phi,\theta,\psi)$ are easy to imagine but break at $\theta=\pm90^\circ$ (gimbal lock: two axes line up and one degree of freedom is lost). A quaternion uses 4 numbers with 1 constraint ($|| q||=1$), which gives 3 degrees of freedom, with no singularity.
+% Why quaternions at all? Euler angles $(\phi,\theta,\psi)$ are easy to imagine but break at $\theta=\pm90^\circ$ (gimbal lock: two axes line up and one degree of freedom is lost). A quaternion uses 4 numbers with 1 constraint ($\| q\|=1$), which gives 3 degrees of freedom, with no singularity.
 %
 
 %% Eq. (1) — Quaternion definition
@@ -131,22 +168,22 @@
 
 %% Eq. (3) — Conjugate, norm, inverse
 %
-% $$q^*=q_0-\bar{q},\;\;\;\; || q||=\sqrt{q\otimes q^*}=\sqrt{q_0^2+q_1^2+q_2^2+q_3^2},\;\;\;\; q^{-1}=\frac{q^*}{|| q||^2} \;\;\;\;\mathrm{(3)}$$
+% $$q^*=q_0-\bar{q},\;\;\;\; \| q\|=\sqrt{q\otimes q^*}=\sqrt{q_0^2+q_1^2+q_2^2+q_3^2},\;\;\;\; q^{-1}=\frac{q^*}{\| q\|^2} \;\;\;\;\mathrm{(3)}$$
 %
 %
 % Derivation
 %
 % Step 1. Put $r=q^*=(q_0,-\bar{q})$ into Eq. (2).
 %
-% Step 2. Scalar part: $q_0q_0-\bar{q}\cdot(-\bar{q})=q_0^2+||\bar{q}||^2=q_0^2+q_1^2+q_2^2+q_3^2$.
+% Step 2. Scalar part: $q_0q_0-\bar{q}\cdot(-\bar{q})=q_0^2+\|\bar{q}\|^2=q_0^2+q_1^2+q_2^2+q_3^2$.
 %
 % Step 3. Vector part: $q_0(-\bar{q})+q_0\bar{q}+\bar{q}\times(-\bar{q})=\mathbf{0}$ (because $\bar{q}\times\bar{q}=0$).
 %
-% Step 4. So $q\otimes q^*=|| q||^2$, a pure real number. Dividing: $q\otimes\frac{q^*}{|| q||^2}=1$, so $q^{-1}=\frac{q^*}{|| q||^2}$.
+% Step 4. So $q\otimes q^*=\| q\|^2$, a pure real number. Dividing: $q\otimes\frac{q^*}{\| q\|^2}=1$, so $q^{-1}=\frac{q^*}{\| q\|^2}$.
 %
-% Step 5. Unit quaternion ($|| q||=1$): $q^{-1}=q^*$. This is why the paper only uses unit quaternions: the inverse is free (just flip the sign of the vector part).
+% Step 5. Unit quaternion ($\| q\|=1$): $q^{-1}=q^*$. This is why the paper only uses unit quaternions: the inverse is free (just flip the sign of the vector part).
 %
-% Paper typo: The paper prints the inverse as $q^*/|| q||$ and the norm with indices $q_2^2+q_3^2+q_4^2$. The correct forms are above.
+% Paper typo: The paper prints the inverse as $q^*/\| q\|$ and the norm with indices $q_2^2+q_3^2+q_4^2$. The correct forms are above.
 %
 % Meaning: conjugate = "rotate backwards"; norm = "length" of the quaternion; inverse = the quaternion that undoes $q$.
 %
@@ -208,7 +245,7 @@
 % $$q=\cos\frac{\alpha}{2}+u\sin\frac{\alpha}{2} \;\;\;\;\mathrm{(5)}$$
 %
 %
-% Meaning: $u$ is the unit rotation axis ($|| u||=1$) and $\alpha$ is the rotation angle.
+% Meaning: $u$ is the unit rotation axis ($\| u\|=1$) and $\alpha$ is the rotation angle.
 %
 % Derivation (it must rotate vectors the right way)
 %
@@ -240,11 +277,11 @@
 %
 % Derivation (small rotation)
 %
-% Step 1. In a tiny time $dt$, the body rotates by the small angle $\alpha=||\omega|| dt$ about the axis $u=\omega/||\omega||$.
+% Step 1. In a tiny time $dt$, the body rotates by the small angle $\alpha=\|\omega\| dt$ about the axis $u=\omega/\|\omega\|$.
 %
 % Step 2. By Eq. (5), this small rotation is
 %
-% $$\delta q=[\cos\frac{||\omega|| dt}{2},\;\;u\sin\frac{||\omega|| dt}{2}]\approx[1,\;\frac12\omega\;dt]$$
+% $$\delta q=[\cos\frac{\|\omega\| dt}{2},\;\;u\sin\frac{\|\omega\| dt}{2}]\approx[1,\;\frac12\omega\;dt]$$
 %
 %
 % (because $\cos(\mathrm{small})\approx1$ and $\sin(\mathrm{small})\approx$ small).
@@ -695,10 +732,13 @@
 % $\dot x=u$ so $A=0, B=1$. ARE: $0+0-P\cdot\frac1R\cdot P+Q=0=> P=\sqrt{QR}$, then $L=P/R=\sqrt{Q/R}$.
 %
 %
-%   Q  R  P  L  Control law
-%   1  1  1  1  u=-x
-%   1  4  2  0.5  u=-0.5x (gentler)
-%   4  1  2  2  u=-2x (more aggressive)
+% $Q$  —  $R$  —  $P$  —  $L$  —  Control law
+%
+% * 1  —  1  —  1  —  1  —  $u=-x$
+%
+% * 1  —  4  —  2  —  0.5  —  $u=-0.5x$ (gentler)
+%
+% * 4  —  1  —  2  —  2  —  $u=-2x$ (more aggressive)
 %
 
 %% Worked example 2 — double integrator (like each axis of Eq. 18) *(extra)*
@@ -731,12 +771,17 @@
 %% 6. Simulation and Results (Section "Simulation Results")
 %
 %
-%   Item  Paper value  Meaning
-%   Path  Circle, fixed altitude 1 m  Test of x,y tracking while z is held
-%   Start point  p_0=(-1,0,0)  On the ground, on the circle's edge
-%   Rate  200 Hz  Controller updates every 5 ms
-%   Effects included  Actuator limits, battery model  Closer to a real drone
-%   Result  "High accuracy"; ≈1 s delay in X and Y  Delay because the drone must first climb to 1 m (altitude settling)
+% Item  —  Paper value  —  Meaning
+%
+% * Path  —  Circle, fixed altitude 1 m  —  Test of $x,y$ tracking while $z$ is held
+%
+% * Start point  —  $p_0=(-1,0,0)$  —  On the ground, on the circle's edge
+%
+% * Rate  —  200 Hz  —  Controller updates every 5 ms
+%
+% * Effects included  —  Actuator limits, battery model  —  Closer to a real drone
+%
+% * Result  —  "High accuracy"; ≈1 s delay in X and Y  —  Delay because the drone must first climb to 1 m (altitude settling)
 %
 % * Figs. 4–6: X, Y, Z responses (reference vs actual). Fig. 7: the 3D path. Fig. 8: PWM signals of four rotors (ESC range 1000–2000 µs). Fig. 9: quaternion components, with $q_0\approx1$ and $q_1,q_2,q_3\approx0$ meaning the attitude stays near hover.
 % * The gain matrix $L$ was "tuned to be adaptive with the full non-linear model" (Eq. 8). In other words, the LQR gains came from the linear model (Eq. 17–18), and were then tuned in simulation on the nonlinear model.
@@ -748,17 +793,27 @@
 % Mention these only if asked; they show you checked the maths.
 %
 %
-%   #  Where  Printed  Correct / note
-%   1  Eq. (3)  q_2^2+q_3^2+q_4^2  q_1^2+q_2^2+q_3^2 (index slip)
-%   2  After Eq. (3)  q^{-1}=q^*/|| q||  q^*/|| q||^2
-%   3  Eq. (7), \phi  2(q_0q_1-q_2q_3)  2(q_0q_1+q_2q_3)
-%   4  Eq. (9), yaw  \sum\tau_i(-1)^2  \sum\tau_i(-1)^i
-%   5  Eq. (10), y-row  -2q_0q_2  -2q_0q_1\approx-2q_1
-%   6  Eq. (15), \phi_d  \ddot X_1\cos X_4-\ddot X_2\sin X_4  Z-Y-X derivation: \ddot X_1\sin X_4-\ddot X_2\cos X_4
-%   7  Eq. (23) text  "Riccati differential equation"  Eq. (23) is the algebraic Riccati equation
-%   8  Eq. (22) text  "R and Q ... states and inputs" order  Q -> states, R -> inputs
-%   9  Simulation  "1 m diameter", start (-1,0,0)  Plots swing between −1 and +1, so the radius looks like 1 m
-%   10  Fig. 8 text  PWM "1–2 sec"  Axis shows 1000–2000, i.e. 1–2 ms (µs units)
+% #  —  Where  —  Printed  —  Correct / note
+%
+% * 1  —  Eq. (3)  —  $q_2^2+q_3^2+q_4^2$  —  $q_1^2+q_2^2+q_3^2$ (index slip)
+%
+% * 2  —  After Eq. (3)  —  $q^{-1}=q^*/\| q\|$  —  $q^*/\| q\|^2$
+%
+% * 3  —  Eq. (7), $\phi$  —  $2(q_0q_1-q_2q_3)$  —  $2(q_0q_1+q_2q_3)$
+%
+% * 4  —  Eq. (9), yaw  —  $\sum\tau_i(-1)^2$  —  $\sum\tau_i(-1)^i$
+%
+% * 5  —  Eq. (10), $y$-row  —  $-2q_0q_2$  —  $-2q_0q_1\approx-2q_1$
+%
+% * 6  —  Eq. (15), $\phi_d$  —  $\ddot X_1\cos X_4-\ddot X_2\sin X_4$  —  Z-Y-X derivation: $\ddot X_1\sin X_4-\ddot X_2\cos X_4$
+%
+% * 7  —  Eq. (23) text  —  "Riccati differential equation"  —  Eq. (23) is the algebraic Riccati equation
+%
+% * 8  —  Eq. (22) text  —  "R and Q ... states and inputs" order  —  $Q$ → states, $R$ → inputs
+%
+% * 9  —  Simulation  —  "1 m diameter", start $(-1,0,0)$  —  Plots swing between −1 and +1, so the radius looks like 1 m
+%
+% * 10  —  Fig. 8 text  —  PWM "1–2 sec"  —  Axis shows 1000–2000, i.e. 1–2 ms (µs units)
 %
 %
 
@@ -768,22 +823,37 @@
 %% Key formulas to remember
 %
 %
-%   Topic  Formula
-%   Quaternion  q=q_0+\bar{q},  || q||=1
-%   Product  q\otimes r=(q_0r_0-\bar{q}\cdot\bar{r})+(r_0\bar{q}+q_0\bar{r}+\bar{q}\times\bar{r})
-%   Conjugate / inverse  q^*=q_0-\bar{q},  q^{-1}=q^*/|| q||^2 (unit: q^{-1}=q^*)
-%   Rotate a vector  v'=q\otimes v\otimes q^*=R_qv,  R_q^{-1}=R_q^T
-%   Axis–angle  q=\cos\frac\alpha2+u\sin\frac\alpha2
-%   Kinematics  \dot q=\frac12q\otimes\omega
-%   Translation  \ddot p=q\otimes\frac Tm\otimes q^*+\bar{g}
-%   Rotation  J\dot\omega=\tau-\omega\times J\omega
-%   Hover linear model  \ddot x=g u_x, \ddot y=-g u_y, \ddot z=T_d/m, J\dot\omega=\tau
-%   Flat outputs  [x,y,z,\psi]^T
-%   Desired pitch  \theta_d=\mathrm{arctan}\frac{\ddot x\cos\psi+\ddot y\sin\psi}{\ddot z+g}
-%   Desired attitude  q_d=q_{pd}\otimes q_{zd}
-%   LQR cost  J=\frac12\int_0^\infty(x^TQx+u^TRu)dt
-%   LQR law  u=-Lx, L=R^{-1}B^TP
-%   ARE  A^TP+PA-PBR^{-1}B^TP+Q=0
+% Topic  —  Formula
+%
+% * Quaternion  —  $q=q_0+\bar{q}$, $\| q\|=1$
+%
+% * Product  —  $q\otimes r=(q_0r_0-\bar{q}\cdot\bar{r})+(r_0\bar{q}+q_0\bar{r}+\bar{q}\times\bar{r})$
+%
+% * Conjugate / inverse  —  $q^*=q_0-\bar{q}$, $q^{-1}=q^*/\| q\|^2$ (unit: $q^{-1}=q^*$)
+%
+% * Rotate a vector  —  $v'=q\otimes v\otimes q^*=R_qv$, $R_q^{-1}=R_q^T$
+%
+% * Axis–angle  —  $q=\cos\frac\alpha2+u\sin\frac\alpha2$
+%
+% * Kinematics  —  $\dot q=\frac12q\otimes\omega$
+%
+% * Translation  —  $\ddot p=q\otimes\frac Tm\otimes q^*+\bar{g}$
+%
+% * Rotation  —  $J\dot\omega=\tau-\omega\times J\omega$
+%
+% * Hover linear model  —  $\ddot x=g u_x, \ddot y=-g u_y, \ddot z=T_d/m, J\dot\omega=\tau$
+%
+% * Flat outputs  —  $[x,y,z,\psi]^T$
+%
+% * Desired pitch  —  $\theta_d=\mathrm{arctan}\frac{\ddot x\cos\psi+\ddot y\sin\psi}{\ddot z+g}$
+%
+% * Desired attitude  —  $q_d=q_{pd}\otimes q_{zd}$
+%
+% * LQR cost  —  $J=\frac12\int_0^\infty(x^TQx+u^TRu)dt$
+%
+% * LQR law  —  $u=-Lx, L=R^{-1}B^TP$
+%
+% * ARE  —  $A^TP+PA-PBR^{-1}B^TP+Q=0$
 %
 
 %% Definitions
@@ -796,7 +866,7 @@
 
 %% Common mistakes
 %
-% 1. Using non-unit quaternions with $q^{-1}=q^*$. This only holds when $|| q||=1$.
+% 1. Using non-unit quaternions with $q^{-1}=q^*$. This only holds when $\| q\|=1$.
 %
 % 2. Forgetting that $q\otimes r\neq r\otimes q$.
 %

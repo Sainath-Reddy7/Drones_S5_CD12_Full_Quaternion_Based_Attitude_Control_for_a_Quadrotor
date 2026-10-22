@@ -54,21 +54,17 @@ def md_blocks(md: str):
             continue
         if s.startswith("|"):
             if re.match(r"^\|[\s:|-]+\|$", s):
+                # the previously emitted row was the table header
+                if blocks and blocks[-1][0] == "P" and \
+                        blocks[-1][1].startswith("* "):
+                    blocks[-1] = ("P", blocks[-1][1][2:])
                 i += 1
                 continue
             cells = [c.strip() for c in s.strip("|").split("|")]
-            cells = [strip_bold(c) for c in cells]
-            row = "  ".join(
-                tex_normalize(strip_dollar_plain(c)) if "$" in c else c
-                for c in cells)
-            if blocks and blocks[-1][0] == "T":
-                blocks[-1][1].append(row)
-            else:
-                blocks.append(("T", [row]))
+            row = "  \u2014  ".join(c for c in cells if c)
+            blocks.append(("P", "* " + strip_dollar_plain(strip_bold(row))))
             i += 1
             continue
-        if blocks and blocks[-1][0] == "T" and not s.startswith("|"):
-            blocks.append(("M", tuple(blocks.pop()[1])))
         if not s or s == "---":
             i += 1
             continue
@@ -97,8 +93,6 @@ def md_blocks(md: str):
             i = j
             continue
         i += 1
-    if blocks and blocks[-1][0] == "T":
-        blocks.append(("M", tuple(blocks.pop()[1])))
     return blocks
 
 

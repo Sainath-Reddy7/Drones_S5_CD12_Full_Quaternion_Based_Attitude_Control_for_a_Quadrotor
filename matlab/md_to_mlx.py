@@ -26,7 +26,10 @@ REPL = [
     (r"\\tfrac", r"\\frac"), (r"\\dfrac", r"\\frac"),
     (r"\\text\b", r"\\mathrm"), (r"\\operatorname", r"\\mathrm"),
     (r"\\mathcal X", "{X}"), (r"\\mathbb\{R\}", "{R}"), (r"\\mathbb\{H\}", "{H}"),
-    (r"\\lVert", "||"), (r"\\rVert", "||"),
+    (r"\\lVert", "\\|"), (r"\\rVert", "\\|"),
+    # a literal || inside math breaks MATLAB's inline-equation parser
+    # (the span falls back to raw text); the main report's proven form is \|
+    (r"\|\|", "\\|"),
     (r"\\boxed\{([^{}]*)\}", r"\1"),
     (r"\\bigg?\b", ""), (r"\\Big\b", ""), (r"\\!", ""), (r"\\;", "\\;"),
     (r"\\succeq", r"\\geq"), (r"\\succ", ">"),
@@ -92,7 +95,9 @@ def normalize_line(s: str) -> str:
     out = []
     for seg in re.split(r"(\$[^$]+\$)", s):
         if seg.startswith("$") and seg.endswith("$") and len(seg) > 2:
-            out.append("$" + tex_normalize(seg[1:-1]) + "$")
+            # edge spaces just inside the delimiters break MATLAB's
+            # inline-equation pairing ("$ x$" stays literal text)
+            out.append("$" + tex_normalize(seg[1:-1]).strip() + "$")
         else:
             out.append(seg)
     return "".join(out)
@@ -131,6 +136,7 @@ def convert(md: str) -> str:
     fence_buf = []
     in_disp = False
     disp_buf = []
+    prev_table_row = False
     i = 0
     lines = md.split("\n")
     while i < len(lines):
@@ -165,22 +171,27 @@ def convert(md: str) -> str:
             i += 1
             continue
         s = ln.rstrip()
+        prev_table_row = False
         if not s.strip():
             out.append("%")
         elif s.startswith("|"):
-            # markdown table row -> monospace block member
+            # markdown table row -> text line with inline math KEPT as $..$
+            # (stripping the delimiters leaves literal TeX like \dot p in
+            # plain text, which the Live Editor shows as raw code)
             if re.match(r"^\|[\s:|-]+\|$", s):
+                # separator: the row just emitted is the header -> no bullet
+                if out and out[-1].startswith("% * "):
+                    out[-1] = "% " + out[-1][4:]
                 i += 1
-                continue  # separator row
-            if not (out and out[-1].startswith("%   ") or
-                    (out and out[-1] == "%" and
-                     any(o.startswith("%   ") for o in out[-3:]))):
+                continue
+            if not prev_table_row:
                 out.append("%")
             cells = [c.strip() for c in s.strip("|").split("|")]
-            out.append("%   " + "  ".join(
-                re.sub(r"\*\*(.+?)\*\*", r"\1",
-                       strip_inline_math(tex_normalize(c)) if "$" in c else c)
-                for c in cells))
+            row = "  \u2014  ".join(c for c in cells if c)
+            out.append("% * " + normalize_line(row))
+            prev_table_row = True
+            i += 1
+            continue
         elif s.startswith("# ") or s.startswith("## "):
             head = s.lstrip("#").strip()
             out.append("")

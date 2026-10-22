@@ -63,22 +63,39 @@ Conversion errors found by the two-pass diff and fixed in `md_to_mlx.py`:
     nested braces from the `\mathcal` rule (`\dot{{X}}`, `\ddot{{X}}` in
     Eqs. 14/15a/15b) are not in MATLAB's TeX table. All normalised
     (`[Npt]` stripped, `\,`→`\;`, `{{X}}`→`{X}`).
+13. **Table cells leaked literal TeX (visual round)**: markdown tables
+    were emitted as monospace text with the math delimiters stripped,
+    so cells like `$\dot p$`, `$q\otimes q^*$`, `$9.81 \text{m/s}^2$`
+    displayed as raw code (`\dot p`, `q\otimes q^*`, `mathrm{m}`) — the
+    "raw text / ugly tables" appearance. Tables are now emitted as text
+    bullets with the `$...$` spans **kept**, so every cell formula is a
+    real rendered inline equation (equation elements went from 482 to
+    565). Two further parser quirks found and fixed in the same round:
+    a literal `||` norm breaks MATLAB's inline-equation parser (norms
+    now use the main report's proven `\|` form), and a space just inside
+    a `$` delimiter (`$ x$`, present in 3 source cells) also makes the
+    span stay literal (edge spaces now stripped).
 
 ## B. Verification performed
 
 Content (automated, two independent passes):
-- Passes after the aligned-row/tag round: **350 markdown blocks ↔
-  350 MLX blocks, aligned 1:1, 0 mismatches** (earlier passes: 347/347,
-  350/350).
-- Structural stats: 482 equation elements (55 display + 427 inline),
-  41 headings, 82 monospace table/fence lines, **0** code cells,
-  **0** leftover markdown (`**`, `$$`, `|---`) and **0** TeX constructs
-  outside MATLAB's documented subset (37 unique commands, all in the
-  classic text-TeX table; `\beta` additionally confirmed against
-  MATLAB's documented Greek-letter table).
-- Junk scan of the equation payload itself (this round): **0** `&`,
-  **0** `\\` row breaks, **0** `\begin{}`, **0** `[Npt]` hacks,
-  **0** `\,`, **0** nested `{{X}}` braces; Eqs. (7b)/(14) tags present.
+- Passes after the table/inline-math round: **421 markdown blocks ↔
+  421 MLX blocks, aligned 1:1, 0 mismatches** (earlier passes: 347/347,
+  350/350; the count grew because each table row is now its own text
+  block instead of one monospace blob).
+- Structural stats: **565 equation elements** (55 display + 510 inline),
+  41 headings, 6 monospace fence lines (the ASCII maps), **0** code
+  cells, **0** leftover markdown and **0** TeX constructs outside
+  MATLAB's documented subset (37 unique commands; `\beta` additionally
+  confirmed against MATLAB's documented Greek-letter table).
+- Junk scan of the equation payload: **0** `&`, **0** `\\` row breaks,
+  **0** `\begin{}`, **0** `[Npt]`, **0** `\,`, **0** nested `{{X}}`
+  braces; Eqs. (7b)/(14) tags present.
+- Rendered-output scan (publish → PDF, 14 pages): text layer contains
+  **0** literal TeX commands and **0** `$` signs; pages 2–8 and 10
+  visually inspected — display equations (1)–(23) typeset (fractions,
+  Greek, subscripts, matrix brackets, `(N)` tags), table sections render
+  as bulleted lines with live inline math.
 
 MATLAB:
 - `.m → .mlx` conversion and `.mlx → .mlx` re-open via
@@ -96,10 +113,11 @@ MATLAB:
 - The document is pure theory (derivations): it contains **no executable
   MATLAB code cells by design**, so there is nothing to run — no
   execution claims are made.
-- Tables are aligned monospace text blocks, not native MLX tables: the
-  `.m`-to-`.mlx` pipeline has no table markup, and hand-authoring native
-  table XML risks file corruption. All table content is present and
-  verified (see A/pass results).
+- Tables render as bulleted text lines with live inline equations, not
+  as grid tables: the `.m`-to-`.mlx` pipeline has no table markup, and
+  hand-authoring native table XML risks file corruption. All table
+  content is present and verified (see A/pass results); only the two
+  ASCII "map" fences remain monospace, by design.
 - Markdown's two heading levels map to one MLX heading level (no
   sub-heading markup exists in script form); hierarchy is preserved by
   the existing "Eq. (N) —" numbering.
