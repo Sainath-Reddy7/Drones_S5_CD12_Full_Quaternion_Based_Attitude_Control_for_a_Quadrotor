@@ -26,17 +26,37 @@ REPL = [
     (r"\\tfrac", r"\\frac"), (r"\\dfrac", r"\\frac"),
     (r"\\text\b", r"\\mathrm"), (r"\\operatorname", r"\\mathrm"),
     (r"\\mathcal X", "{X}"), (r"\\mathbb\{R\}", "{R}"), (r"\\mathbb\{H\}", "{H}"),
-    (r"\\lVert", r"\\Vert"), (r"\\rVert", r"\\Vert"),
+    (r"\\lVert", "||"), (r"\\rVert", "||"),
     (r"\\boxed\{([^{}]*)\}", r"\1"),
-    (r"\\bigg?\b", ""), (r"\\Big\b", ""), (r"\\!", ""), (r"\\;", " "),
+    (r"\\bigg?\b", ""), (r"\\Big\b", ""), (r"\\!", ""), (r"\\;", "\\;"),
     (r"\\succeq", r"\\geq"), (r"\\succ", ">"),
     (r"×", r"\\times"), (r"≈", r"\\approx"), (r"±", r"\\pm"),
     (r"−", "-"), (r"°", r"^\\circ"), (r"≥", r"\\geq"), (r"µ", r"\\mu"),
     (r"—", "-"), (r"–", "-"), (r"→", "->"), (r"\\dot\{X\}", r"\\dot{X}"),
+    # MATLAB's equation importer supports no \begin{} environments and no
+    # \\ row breaks (its TeX table = the classic text-TeX subset), so:
+    (r"\\qquad", r"\\;\\;\\;\\;"), (r"\\quad", r"\\;\\;"),
+    (r"\\ ", r"\\;"),
+    (r"\\left", ""), (r"\\right", ""),
+    (r"\\to(?![a-zA-Z])", r"\\rightarrow"), (r"\\ge(?![a-zA-Z])", r"\\geq"),
+    (r"\\Rightarrow", "=>"), (r"\\Leftrightarrow", "<=>"),
+    (r"\\arcsin", r"\\mathrm{arcsin}"), (r"\\arctan", r"\\mathrm{arctan}"),
+    (r"\\arccos", r"\\mathrm{arccos}"), (r"\\tan(?![a-zA-Z])", r"\\mathrm{tan}"),
+    (r"\\lim(?![a-zA-Z])", r"\\mathrm{lim}"), (r"\\det(?![a-zA-Z])", r"\\mathrm{det}"),
+    (r"\\mathbf 0", r"\\mathbf{0}"),
+    (r"\\mathcal\{X\}", "{X}"),
 ]
+
+MATRIX_RE = re.compile(r"\\begin\{bmatrix\}(.*?)\\end\{bmatrix\}")
+ALIGNED_RE = re.compile(r"\\begin\{aligned\}(.*?)\\end\{aligned\}")
 
 
 def tex_normalize(s: str) -> str:
+    # matrices -> bracket notation first (this removes their & and \\ too)
+    def mat(m):
+        inner = m.group(1).replace("&", ", ").replace("\\\\", "; ")
+        return "[" + inner.strip() + "]"
+    s = MATRIX_RE.sub(mat, s)
     for a, b in REPL:
         s = s.replace(a, b) if not a.startswith("\\") and len(a) > 2 else \
             re.sub(a, b, s)
@@ -75,6 +95,17 @@ def normalize_line(s: str) -> str:
     return "".join(out)
 
 
+def split_aligned(eq: str) -> list:
+    """Split one normalised display TeX string into one-or-more strings:
+    aligned environments become separate rows (MATLAB has no multi-line
+    equations); alignment '&' before '=' is dropped."""
+    m = ALIGNED_RE.search(eq)
+    if not m:
+        return [eq]
+    rows = [r.strip().lstrip("&").strip() for r in m.group(1).split("\\\\")]
+    return [r for r in rows if r]
+
+
 def convert(md: str) -> str:
     out = []
     in_fence = False
@@ -102,8 +133,9 @@ def convert(md: str) -> str:
         if ln.strip() == "$$":
             if in_disp:
                 eq = " ".join(x.strip() for x in disp_buf if x.strip())
-                out.append("% $$" + tex_normalize(eq) + "$$")
-                out.append("%")
+                for row in split_aligned(tex_normalize(eq)):
+                    out.append("% $$" + row + "$$")
+                    out.append("%")
                 disp_buf = []
             in_disp = not in_disp
             i += 1

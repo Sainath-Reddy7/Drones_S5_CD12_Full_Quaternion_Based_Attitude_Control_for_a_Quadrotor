@@ -35,18 +35,29 @@ Conversion errors found by the two-pass diff and fixed in `md_to_mlx.py`:
 9. Unicode→TeX conversion previously applied to prose (literal `\times`,
    `->` in text); now applied only inside math spans — prose keeps its
    original characters.
+10. **Rendering vocabulary (visual-error round)**: the MLX equations
+    contained 33 `\begin{bmatrix/aligned}` environments, 59 `\\` row
+    breaks, and `\qquad`/`\left`/`\right`/`\arcsin`/`\lim`/`\Rightarrow`
+    — none of which MATLAB's equation importer supports (its TeX table
+    is the classic text-TeX subset, confirmed against the 230 visually
+    proven equations of project_report.mlx). All rewritten to supported
+    equivalents: matrices to bracket notation `[a, b; c, d]`, aligned
+    blocks split into separate display equations, `\qquad`→`\;\;\;\;`,
+    `\left`/`\right` dropped, function names to `\mathrm{...}`,
+    `\Rightarrow`→`=>`, `\to`→`\rightarrow`, `\ge`→`\geq`. Final
+    inventory: 37 unique commands, every one inside MATLAB's documented
+    TeX table; zero environments, zero row breaks.
 
 ## B. Verification performed
 
 Content (automated, two independent passes):
-- Pass 1 and pass 2 both: **347 markdown blocks ↔ 347 MLX blocks, aligned
-  1:1, 0 mismatches** — every heading, paragraph, derivation step,
-  equation, table row, note and reference is present, in order, with
-  identical wording and TeX (modulo the documented normalisations).
-- Structural stats: 479 equation elements (52 display + 427 inline),
+- Passes after the rendering-vocabulary round: **350 markdown blocks ↔
+  350 MLX blocks, aligned 1:1, 0 mismatches** (earlier passes: 347/347).
+- Structural stats: 482 equation elements (55 display + 427 inline),
   41 headings, 82 monospace table/fence lines, **0** code cells,
-  **0** leftover markdown (`**`, `$$`, `|---`) or out-of-subset TeX
-  (`\tfrac`, `\text{`, `\boxed`, `\operatorname`, `\mathbb`, `\lVert`).
+  **0** leftover markdown (`**`, `$$`, `|---`) and **0** TeX constructs
+  outside MATLAB's documented subset (37 unique commands, all in the
+  classic text-TeX table).
 
 MATLAB:
 - `.m → .mlx` conversion and `.mlx → .mlx` re-open via

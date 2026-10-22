@@ -16,7 +16,7 @@ import sys
 import zipfile
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent))
-from md_to_mlx import tex_normalize  # noqa: E402
+from md_to_mlx import tex_normalize, split_aligned  # noqa: E402
 
 
 def md_blocks(md: str):
@@ -47,7 +47,9 @@ def md_blocks(md: str):
                 eq.append(lines[i].strip())
                 i += 1
             i += 1  # closer
-            blocks.append(("E", tex_normalize(" ".join(x for x in eq if x))))
+            for row in split_aligned(
+                    tex_normalize(" ".join(x for x in eq if x))):
+                blocks.append(("E", row))
             continue
         if s.startswith("|"):
             if re.match(r"^\|[\s:|-]+\|$", s):
