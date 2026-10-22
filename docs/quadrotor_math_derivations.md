@@ -1,7 +1,3 @@
----
-title: Quadrotor Trajectory Tracking — Full Math Derivations
-subtitle: Choutri, Lagha, Dala, Lipatov (2017), ICMSAO — every equation, where it comes from, what each symbol means
----
 
 
 
