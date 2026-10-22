@@ -89,7 +89,7 @@ logging (eq. 16):
 ```
 
 The law is derivative-free and needs no integral term: torque → ω̇ → attitude is
-a double integrator, so steady-state error decays to zero on its own. Where the paper's
+a double integrator,so steady-state error decays to zero on its own. Where the paper's
 sign on eq. (18) differs from the textbook convention, it is **preserved literally**, not
 silently corrected (see Fidelity notes).
 
