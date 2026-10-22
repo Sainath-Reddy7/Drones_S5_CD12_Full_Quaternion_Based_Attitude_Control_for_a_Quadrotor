@@ -1,3 +1,16 @@
+# Quadrotor Trajectory Tracking — Full Math Derivations
+
+*Choutri, Lagha, Dala, Lipatov (2017), ICMSAO. Every equation, where it comes from, and what each symbol means.*
+
+# How to Use This File
+
+- Every equation keeps the **paper's equation number**, e.g. **Eq. (6)**, so you can say "this is Eq. (6) of the paper" in front of the professor.
+- Each equation has the same pattern: **what it says → where it comes from (derivation, step by step) → meaning of every symbol → where it is used next**.
+- **Paper typo:** marks a place where the printed paper has a typo or inconsistency. The corrected form is derived here. See Section 7 for the full list.
+- Things marked *(extra, not in the paper)* are my added reasoning or examples, to help you understand. Do not say they are from the paper.
+
+---
+
 # 0. Big Picture — How the Equations Connect
 
 ```text
@@ -38,14 +51,14 @@ LQR (Eq. 22-23)              : cost and Riccati equation give u = -Lx
 | Symbol | Meaning |
 |---|---|
 | $p\in\mathbb{R}^3$ | Position of the drone in the inertial (ground) frame: $[x,y,z]^T$ |
-| $\dot p,\ \ddot p$ | Velocity, acceleration |
+| $\dot p, \ddot p$ | Velocity, acceleration |
 | $q\in\mathbb{H}$ | Unit quaternion = orientation of the drone body w.r.t. the ground frame |
 | $q_0$ | Scalar (real) part of $q$ |
 | $\bar q=[q_1,q_2,q_3]^T$ | Vector (imaginary) part of $q$ |
 | $\omega\in\mathbb{R}^3$ | Angular velocity in the **body** frame |
 | $m$ | Mass of the drone |
 | $J$ | Inertia matrix (3×3) in the body frame |
-| $g$ | Gravity, $9.81\ \text{m/s}^2$; $\bar g=[0,0,-g]^T$ |
+| $g$ | Gravity, $9.81 \text{m/s}^2$; $\bar g=[0,0,-g]^T$ |
 | $T$ | Total thrust (force along the body $z$-axis) |
 | $\tau=[\tau_x,\tau_y,\tau_z]^T$ | Torques about the body axes (roll, pitch, yaw) |
 | $\phi,\theta,\psi$ | Roll, pitch, yaw (Euler angles) |
@@ -67,20 +80,22 @@ LQR (Eq. 22-23)              : cost and Riccati equation give u = -Lx
 ## Eq. (1) — Quaternion definition
 
 $$
-q = q_0 + \bar q = q_0 + \begin{bmatrix} q_1\\ q_2\\ q_3\end{bmatrix},\qquad q\in\mathbb{H},\ \bar q\in\mathbb{R}^3,\ q_0\in\mathbb{R} \qquad\text{(1)}
+q = q_0 + \bar q = q_0 + \begin{bmatrix} q_1\\ q_2\\ q_3\end{bmatrix},\qquad q\in\mathbb{H},\ \bar q\in\mathbb{R}^3,\ q_0\in\mathbb{R}
+\qquad\text{(1)}
 $$
 
 **Meaning of each part**
 
 - $q_0$: scalar part. It is linked to *how much* we rotate.
 - $\bar q$: vector part. It is linked to *which axis* we rotate about.
-- Written fully: $q=q_0+q_1\,i+q_2\,j+q_3\,k$, where $i,j,k$ are three different "imaginary units".
+- Written fully: $q=q_0+q_1 i+q_2 j+q_3 k$, where $i,j,k$ are three different "imaginary units".
 - Identity quaternion $[1,0,0,0]^T$ means **no rotation** (this is the hover value in the paper).
 
 ## Eq. (2) — Quaternion product
 
 $$
-q\otimes r = (q_0r_0-\bar q\cdot\bar r)+(r_0\bar q+q_0\bar r+\bar q\times\bar r) \qquad\text{(2)}
+q\otimes r = (q_0r_0-\bar q\cdot\bar r)+(r_0\bar q+q_0\bar r+\bar q\times\bar r)
+\qquad\text{(2)}
 $$
 
 **Where it comes from (derivation)**
@@ -94,14 +109,14 @@ $$
 *Step 1.* Multiply term by term:
 $(q_0+q_1i+q_2j+q_3k)(r_0+r_1i+r_2j+r_3k)$.
 
-*Step 2.* **Scalar part.** Only $q_0r_0$ and the products $i\cdot i,\ j\cdot j,\ k\cdot k$ (each $=-1$) give scalars:
+*Step 2.* **Scalar part.** Only $q_0r_0$ and the products $i\cdot i, j\cdot j, k\cdot k$ (each $=-1$) give scalars:
 
 $$
 q_0r_0-q_1r_1-q_2r_2-q_3r_3=q_0r_0-\bar q\cdot\bar r
 $$
 
 *Step 3.* **$i$-part.** Collect all terms ending in $i$:
-$q_0r_1+q_1r_0+q_2r_3\,(jk=i)-q_3r_2\,(kj=-i)$
+$q_0r_1+q_1r_0+q_2r_3 (jk=i)-q_3r_2 (kj=-i)$
 
 $$
 = q_0r_1+r_0q_1+(q_2r_3-q_3r_2)
@@ -123,7 +138,8 @@ The bracket is exactly the $x$-component of the cross product $\bar q\times\bar 
 $$
 q^*=q_0-\bar q,\qquad
 \lVert q\rVert=\sqrt{q\otimes q^*}=\sqrt{q_0^2+q_1^2+q_2^2+q_3^2},\qquad
-q^{-1}=\frac{q^*}{\lVert q\rVert^2} \qquad\text{(3)}
+q^{-1}=\frac{q^*}{\lVert q\rVert^2}
+\qquad\text{(3)}
 $$
 
 **Derivation**
@@ -146,7 +162,8 @@ $$
 
 $$
 R_q=(q_0I+q_{1_{3\times}})^2+\bar q\bar q^T
-=(q_0^2-\bar q^T\bar q)I+2q_0q_{1_{3\times}}+2\bar q\bar q^T \qquad\text{(4a)}
+=(q_0^2-\bar q^T\bar q)I+2q_0q_{1_{3\times}}+2\bar q\bar q^T
+\qquad\text{(4a)}
 $$
 
 $$
@@ -154,7 +171,8 @@ R_q=\begin{bmatrix}
 q_0^2+q_1^2-q_2^2-q_3^2 & 2(q_1q_2-q_3q_0) & 2(q_1q_3+q_2q_0)\\
 2(q_1q_2+q_3q_0) & q_0^2-q_1^2+q_2^2-q_3^2 & 2(q_2q_3-q_1q_0)\\
 2(q_1q_3-q_2q_0) & 2(q_2q_3+q_1q_0) & q_0^2-q_1^2-q_2^2+q_3^2
-\end{bmatrix} \qquad\text{(4b)}
+\end{bmatrix}
+\qquad\text{(4b)}
 $$
 
 **Where it comes from.** A vector $v$ is rotated by $v'=q\otimes v\otimes q^*$, with $v$ treated as the pure quaternion $(0,v)$.
@@ -171,21 +189,21 @@ $$
 q_0(q_0v+\bar q\times v)+(\bar q\cdot v)\bar q-(q_0v+\bar q\times v)\times\bar q
 $$
 
-*Step 3.* Expand the last term with $v\times\bar q=-\bar q\times v$ and the identity $(\bar q\times v)\times\bar q=v\,(\bar q\cdot\bar q)-\bar q\,(v\cdot\bar q)$:
+*Step 3.* Expand the last term with $v\times\bar q=-\bar q\times v$ and the identity $(\bar q\times v)\times\bar q=v (\bar q\cdot\bar q)-\bar q (v\cdot\bar q)$:
 
 $$
-v'=(q_0^2-\bar q\cdot\bar q)\,v+2(\bar q\cdot v)\,\bar q+2q_0\,(\bar q\times v) \qquad\text{(4c)}
+v'=(q_0^2-\bar q\cdot\bar q)\,v+2(\bar q\cdot v)\,\bar q+2q_0\,(\bar q\times v)
+\qquad\text{(4c)}
 $$
 
 *Step 4.* Write each piece as a matrix times $v$:
 
-- $\bar q\times v=q_{1_{3\times}}v$, where $q_{1_{3\times}}$ is the **skew-symmetric matrix** of $\bar q$:
+- $\bar q\times v=q_{1_{3\times}}v$, where $q_{1_{3\times}}$ is the **skew-symmetric matrix** of $\bar q$ (written out below).
+- $(\bar q\cdot v)\bar q=\bar q\bar q^Tv$.
 
 $$
 q_{1_{3\times}}=\begin{bmatrix}0&-q_3&q_2\\ q_3&0&-q_1\\ -q_2&q_1&0\end{bmatrix}
 $$
-
-- $(\bar q\cdot v)\bar q=\bar q\bar q^Tv$.
 
 So $v'=R_qv$ with $R_q=(q_0^2-\bar q^T\bar q)I+2q_0q_{1_{3\times}}+2\bar q\bar q^T$. This is the second form in Eq. (4a).
 
@@ -209,7 +227,8 @@ This column is used in Eq. (10).
 ## Eq. (5) — Axis–angle form
 
 $$
-q=\cos\frac{\alpha}{2}+u\sin\frac{\alpha}{2} \qquad\text{(5)}
+q=\cos\frac{\alpha}{2}+u\sin\frac{\alpha}{2}
+\qquad\text{(5)}
 $$
 
 **Meaning:** $u$ is the unit rotation axis ($\lVert u\rVert=1$) and $\alpha$ is the rotation angle.
@@ -218,7 +237,7 @@ $$
 
 *Step 1.* Put $q_0=\cos\frac\alpha2$ and $\bar q=u\sin\frac\alpha2$ into Eq. (4c).
 
-*Step 2.* Use $c=\cos\frac\alpha2,\ s=\sin\frac\alpha2$:
+*Step 2.* Use $c=\cos\frac\alpha2, s=\sin\frac\alpha2$:
 
 $$
 v'=(c^2-s^2)v+2s^2(u\cdot v)u+2cs\,(u\times v)
@@ -239,7 +258,8 @@ $$
 ## Eq. (6) — Quaternion kinematics
 
 $$
-\dot q=\frac12\,q\otimes\omega \qquad\text{(6)}
+\dot q=\frac12\,q\otimes\omega
+\qquad\text{(6)}
 $$
 
 **Meaning:** how the orientation changes when the body spins with angular velocity $\omega$ (body frame). $\omega$ is used as the pure quaternion $(0,\omega)$.
@@ -268,7 +288,7 @@ $$
 
 ## Eq. (7) — Euler angles to/from quaternion
 
-**Euler → quaternion** (yaw–pitch–roll, order Z–Y–X, with $c_x=\cos\frac x2,\ s_x=\sin\frac x2$):
+**Euler → quaternion** (yaw–pitch–roll, order Z–Y–X, with $c_x=\cos\frac x2, s_x=\sin\frac x2$):
 
 $$
 q=\begin{bmatrix}
@@ -276,20 +296,21 @@ c_\phi c_\theta c_\psi+s_\phi s_\theta s_\psi\\
 s_\phi c_\theta c_\psi-c_\phi s_\theta s_\psi\\
 c_\phi s_\theta c_\psi+s_\phi c_\theta s_\psi\\
 c_\phi c_\theta s_\psi-s_\phi s_\theta c_\psi
-\end{bmatrix} \qquad\text{(7a)}
+\end{bmatrix}
+\qquad\text{(7a)}
 $$
 
 **Derivation**
 
 *Step 1.* Each single-axis rotation is a quaternion by Eq. (5):
 
-- Roll: $q_\phi=[c_\phi,\ s_\phi,\ 0,\ 0]$ (axis $x$)
-- Pitch: $q_\theta=[c_\theta,\ 0,\ s_\theta,\ 0]$ (axis $y$)
-- Yaw: $q_\psi=[c_\psi,\ 0,\ 0,\ s_\psi]$ (axis $z$)
+- Roll: $q_\phi=[c_\phi, s_\phi, 0, 0]$ (axis $x$)
+- Pitch: $q_\theta=[c_\theta, 0, s_\theta, 0]$ (axis $y$)
+- Yaw: $q_\psi=[c_\psi, 0, 0, s_\psi]$ (axis $z$)
 
 *Step 2.* Total rotation: $q=q_\psi\otimes q_\theta\otimes q_\phi$.
 
-*Step 3.* First $q_\psi\otimes q_\theta$ with Eq. (2): scalar $=c_\psi c_\theta$; vector $=c_\theta(0,0,s_\psi)+c_\psi(0,s_\theta,0)+(0,0,s_\psi)\times(0,s_\theta,0)=(-s_\psi s_\theta,\ c_\psi s_\theta,\ s_\psi c_\theta)$.
+*Step 3.* First $q_\psi\otimes q_\theta$ with Eq. (2): scalar $=c_\psi c_\theta$; vector $=c_\theta(0,0,s_\psi)+c_\psi(0,s_\theta,0)+(0,0,s_\psi)\times(0,s_\theta,0)=(-s_\psi s_\theta, c_\psi s_\theta, s_\psi c_\theta)$.
 
 *Step 4.* Then multiply by $q_\phi=(c_\phi,(s_\phi,0,0))$. Scalar: $c_\psi c_\theta c_\phi-(-s_\psi s_\theta)s_\phi=c_\phi c_\theta c_\psi+s_\phi s_\theta s_\psi$ (the first row of Eq. 7a). The three vector components give the other three rows in the same way.
 
@@ -300,16 +321,17 @@ $$
 \phi&=\operatorname{atan2}\!\big(2(q_0q_1+q_2q_3),\ q_0^2-q_1^2-q_2^2+q_3^2\big)\\
 \theta&=\arcsin\!\big(2(q_0q_2-q_3q_1)\big)\\
 \psi&=\operatorname{atan2}\!\big(2(q_0q_3+q_1q_2),\ q_0^2+q_1^2-q_2^2-q_3^2\big)
-\end{aligned} \qquad\text{(7b)}
+\end{aligned}
+\qquad\text{(7b)}
 $$
 
 **Derivation.** For ZYX Euler angles: $R_{31}=-\sin\theta$, $R_{32}=\cos\theta\sin\phi$, $R_{33}=\cos\theta\cos\phi$, $R_{21}=\cos\theta\sin\psi$, $R_{11}=\cos\theta\cos\psi$. Match these to entries of Eq. (4b):
 
 - $R_{31}=2(q_1q_3-q_2q_0)=-\sin\theta$ so $\theta=\arcsin(2(q_0q_2-q_1q_3))$
-- $R_{32}/R_{33}=\tan\phi$ so $\phi=\operatorname{atan2}(2(q_2q_3+q_1q_0),\ q_0^2-q_1^2-q_2^2+q_3^2)$
-- $R_{21}/R_{11}=\tan\psi$ so $\psi=\operatorname{atan2}(2(q_1q_2+q_3q_0),\ q_0^2+q_1^2-q_2^2-q_3^2)$
+- $R_{32}/R_{33}=\tan\phi$ so $\phi=\operatorname{atan2}(2(q_2q_3+q_1q_0), q_0^2-q_1^2-q_2^2+q_3^2)$
+- $R_{21}/R_{11}=\tan\psi$ so $\psi=\operatorname{atan2}(2(q_1q_2+q_3q_0), q_0^2+q_1^2-q_2^2-q_3^2)$
 
-**Paper typo:** The paper prints $2(q_0q_1\,\mathbf{-}\,q_2q_3)$ inside the $\phi$ formula. Derivation gives **plus**. This is most likely a typo.
+**Paper typo:** The paper prints $2(q_0q_1 \mathbf{-} q_2q_3)$ inside the $\phi$ formula. Derivation gives **plus**. This is most likely a typo.
 
 **Why useful:** the controller works in quaternions, but humans (and plots) want angles in degrees.
 
@@ -328,7 +350,8 @@ $$
 q\otimes\dfrac{T}{m}\otimes q^*+\bar g\\[6pt]
 \dfrac12\,q\otimes\omega\\[6pt]
 J^{-1}(\tau-\omega\times J\omega)
-\end{bmatrix} \qquad\text{(8)}
+\end{bmatrix}
+\qquad\text{(8)}
 $$
 
 State: $p$ (3) + $\dot p$ (3) + $q$ (4) + $\omega$ (3) = **13 states**. Inputs: $T,\tau_x,\tau_y,\tau_z$ = **4 inputs**. That is why the system is **underactuated** (6 degrees of freedom, 4 inputs).
@@ -375,7 +398,8 @@ $$
 l\,(k_1\omega_1^2-k_2\omega_2^2-k_3\omega_3^2+k_4\omega_4^2)\\
 l\,(k_1\omega_1^2+k_2\omega_2^2-k_3\omega_3^2-k_4\omega_4^2)\\
 \sum_{i=1}^{4}\tau_i(-1)^{i}
-\end{bmatrix} \qquad\text{(9)}
+\end{bmatrix}
+\qquad\text{(9)}
 $$
 
 **Paper typo:** The paper prints $(-1)^2$ in the last row, which would always be $+1$. It should be $(-1)^i$, so that the reaction torques alternate in sign.
@@ -384,7 +408,7 @@ $$
 
 *Step 1.* A propeller spinning at $\omega_i$ gives thrust $F_i=k_i\omega_i^2$ (thrust grows with the **square** of the speed). Total thrust: $T=\sum F_i$.
 
-*Step 2.* **Roll/pitch torque = force × lever arm.** A rotor at distance $l$ from the centre pushes up with $F_i$ and creates a torque $l\,F_i$ about the axis. Rotors on opposite sides of an axis give opposite signs. That gives the $+$/$-$ patterns in rows 2 and 3.
+*Step 2.* **Roll/pitch torque = force × lever arm.** A rotor at distance $l$ from the centre pushes up with $F_i$ and creates a torque $l F_i$ about the axis. Rotors on opposite sides of an axis give opposite signs. That gives the $+$/$-$ patterns in rows 2 and 3.
 
 *Step 3.* **Yaw torque.** A spinning propeller drags air, and the air pushes back on the drone with a reaction torque $\tau_i$. Neighbouring rotors spin in opposite directions, so their reaction torques alternate in sign: $\sum\tau_i(-1)^i$. If all four are equal, yaw torque is zero and the drone does not spin.
 
@@ -401,7 +425,8 @@ $$
 J\dot\omega=\tau,\qquad
 \dot q=\frac12\begin{bmatrix}0\\ \omega\end{bmatrix},\qquad
 m\ddot p=\begin{bmatrix}mg\,(2q_2)\\ -mg\,(2q_1)\\ T\end{bmatrix}-\begin{bmatrix}0\\0\\mg\end{bmatrix}
-=\begin{bmatrix}mg\,u_x\\ -mg\,u_y\\ T\end{bmatrix}-\begin{bmatrix}0\\0\\mg\end{bmatrix} \qquad\text{(10)}
+=\begin{bmatrix}mg\,u_x\\ -mg\,u_y\\ T\end{bmatrix}-\begin{bmatrix}0\\0\\mg\end{bmatrix}
+\qquad\text{(10)}
 $$
 
 with $u_x=2q_2$ and $u_y=2q_1$ (small tilt values).
@@ -430,7 +455,7 @@ $$
 
 Result: Eq. (10).
 
-**Meaning:** a small **tilt** ($q_2$ about $y$, $q_1$ about $x$) makes the thrust point slightly sideways, giving horizontal acceleration $\ddot x\approx 2g\,q_2$ and $\ddot y\approx-2g\,q_1$ (about $g\times$ tilt angle, since $2q_2\approx\theta$). Thrust above $mg$ makes the drone climb.
+**Meaning:** a small **tilt** ($q_2$ about $y$, $q_1$ about $x$) makes the thrust point slightly sideways, giving horizontal acceleration $\ddot x\approx 2g q_2$ and $\ddot y\approx-2g q_1$ (about $g\times$ tilt angle, since $2q_2\approx\theta$). Thrust above $mg$ makes the drone climb.
 
 > **Understanding check:** At hover, what is $T$? *(Answer: $T=mg$, so $\ddot z=0$.)*
 
@@ -441,14 +466,16 @@ Result: Eq. (10).
 ## Eq. (11), (12) — Definition
 
 $$
-\dot x(t)=f\big(x(t),u(t)\big),\qquad y=h\big(x(t)\big) \qquad\text{(11)}
+\dot x(t)=f\big(x(t),u(t)\big),\qquad y=h\big(x(t)\big)
+\qquad\text{(11)}
 $$
 
 The system is **flat** if there is an output $z(t)$ (the **flat output**) such that **all states and inputs** can be written using only $z$ and a **finite number of its derivatives**:
 
 $$
 x(t)=\Xi_1\big(z,\dot z,\ddot z,\ldots,z^{(\alpha)}\big),\qquad
-u(t)=\Xi_2\big(z,\dot z,\ddot z,\ldots,z^{(\beta)}\big) \qquad\text{(12)}
+u(t)=\Xi_2\big(z,\dot z,\ddot z,\ldots,z^{(\beta)}\big)
+\qquad\text{(12)}
 $$
 
 **Meaning of each part**
@@ -468,14 +495,16 @@ $$
 ## Eq. (13), (14) — Flat outputs of the quadrotor
 
 $$
-\mathcal X=\begin{bmatrix}x\\y\\z\\\psi\end{bmatrix} \qquad\text{(13)}
+\mathcal X=\begin{bmatrix}x\\y\\z\\\psi\end{bmatrix}
+\qquad\text{(13)}
 $$
 
 $$
 \begin{aligned}
 [x,\,y,\,z]^T&=[\mathcal X_1,\,\mathcal X_2,\,\mathcal X_3]^T\\
 [\dot x,\,\dot y,\,\dot z]^T&=[\dot{\mathcal X}_1,\,\dot{\mathcal X}_2,\,\dot{\mathcal X}_3]^T
-\end{aligned} \qquad\text{(14)}
+\end{aligned}
+\qquad\text{(14)}
 $$
 
 - Four flat outputs for four inputs. Position gives velocity and acceleration by differentiating, which is "trivial".
@@ -484,7 +513,8 @@ $$
 ## Eq. (15) — Desired pitch and roll from the desired acceleration
 
 $$
-\theta_d=\arctan\!\left(\frac{\ddot{\mathcal X}_1\cos\mathcal X_4+\ddot{\mathcal X}_2\sin\mathcal X_4}{\ddot{\mathcal X}_3+g}\right) \qquad\text{(15a)}
+\theta_d=\arctan\!\left(\frac{\ddot{\mathcal X}_1\cos\mathcal X_4+\ddot{\mathcal X}_2\sin\mathcal X_4}{\ddot{\mathcal X}_3+g}\right)
+\qquad\text{(15a)}
 $$
 
 **Derivation (this is the key flatness step)**
@@ -500,11 +530,9 @@ $$
 $$
 \ddot x=\tfrac Tm(\cos\phi\sin\theta\cos\psi+\sin\phi\sin\psi)
 $$
-
 $$
 \ddot y=\tfrac Tm(\cos\phi\sin\theta\sin\psi-\sin\phi\cos\psi)
 $$
-
 $$
 \ddot z+g=\tfrac Tm\cos\phi\cos\theta
 $$
@@ -515,12 +543,13 @@ $$
 \ddot x\cos\psi+\ddot y\sin\psi=\tfrac Tm\cos\phi\sin\theta
 $$
 
-*Step 4.* Divide by the third equation: $\dfrac{\ddot x\cos\psi+\ddot y\sin\psi}{\ddot z+g}=\dfrac{\sin\theta}{\cos\theta}=\tan\theta$. Hence Eq. (15a), with $\mathcal X_1=x,\ \mathcal X_2=y,\ \mathcal X_3=z,\ \mathcal X_4=\psi$.
+*Step 4.* Divide by the third equation: $\dfrac{\ddot x\cos\psi+\ddot y\sin\psi}{\ddot z+g}=\dfrac{\sin\theta}{\cos\theta}=\tan\theta$. Hence Eq. (15a), with $\mathcal X_1=x, \mathcal X_2=y, \mathcal X_3=z, \mathcal X_4=\psi$.
 
 *Step 5 — roll.* Form $\ddot x\sin\psi-\ddot y\cos\psi=\tfrac Tm\sin\phi$. Divide by $\tfrac Tm\cos\phi=(\ddot z+g)/\cos\theta$:
 
 $$
-\phi_d=\arctan\!\left(\frac{\ddot{\mathcal X}_1\sin\mathcal X_4-\ddot{\mathcal X}_2\cos\mathcal X_4}{\ddot{\mathcal X}_3+g}\cdot\cos\theta_d\right) \qquad\text{(15b)}
+\phi_d=\arctan\!\left(\frac{\ddot{\mathcal X}_1\sin\mathcal X_4-\ddot{\mathcal X}_2\cos\mathcal X_4}{\ddot{\mathcal X}_3+g}\cdot\cos\theta_d\right)
+\qquad\text{(15b)}
 $$
 
 **Paper typo:** The paper prints $\ddot{\mathcal X}_1\cos\mathcal X_4-\ddot{\mathcal X}_2\sin\mathcal X_4$ for roll. For $\psi=0$ the correct roll should depend on the **$y$-acceleration** (side motion needs roll), which the paper's form does not show. If asked, say: "Eq. (15a) matches my derivation exactly. For (15b) my Z-Y-X derivation gives sin/cos swapped; the paper may use a different sign or frame convention."
@@ -541,8 +570,8 @@ $$
 
 **Worked example** *(extra, not in the paper)*. Circle of radius $r$, angular rate $\Omega$, constant altitude, $\psi=0$:
 
-- $x_d=r\cos\Omega t,\ y_d=r\sin\Omega t,\ z_d=\text{const}$, so $\ddot x_d=-\Omega^2x_d,\ \ddot y_d=-\Omega^2y_d,\ \ddot z_d=0$.
-- Then $\theta_d=\arctan\!\big(-\Omega^2x_d/g\big)$ and $\phi_d=\arctan\!\big(+\Omega^2y_d/g\cdot\cos\theta_d\big)$.
+- $x_d=r\cos\Omega t, y_d=r\sin\Omega t, z_d=\text{const}$, so $\ddot x_d=-\Omega^2x_d, \ddot y_d=-\Omega^2y_d, \ddot z_d=0$.
+- Then $\theta_d=\arctan \big(-\Omega^2x_d/g\big)$ and $\phi_d=\arctan \big(+\Omega^2y_d/g\cdot\cos\theta_d\big)$.
 - With $r=1$ m and an assumed period of 8 s ($\Omega=2\pi/8\approx0.785$ rad/s): $\Omega^2\approx0.617$, so max acceleration $\approx0.617$ m/s² and max tilt $\approx\arctan(0.617/9.81)\approx3.6^\circ$. Small tilts, so the linear model of Eq. (10) is a reasonable approximation for this slow circle.
 
 > **Understanding check:** Why does the drone need to tilt to move sideways? *(Answer: thrust only acts along the body $z$-axis; tilting puts part of the thrust in the horizontal direction.)*
@@ -554,7 +583,8 @@ $$
 ## Eq. (16) — General linear state-space
 
 $$
-\dot x=Ax+Bu,\qquad y=Cx \qquad\text{(16)}
+\dot x=Ax+Bu,\qquad y=Cx
+\qquad\text{(16)}
 $$
 
 - $x$: state vector, $u$: input, $y$: output.
@@ -562,15 +592,16 @@ $$
 
 ## Eq. (17) — Attitude subsystem
 
-State $x_A=[\bar q;\ \omega]\in\mathbb{R}^6$, input $=\tau_u=[\tau_{u_x},\tau_{u_y},\tau_{u_z}]^T$:
+State $x_A=[\bar q; \omega]\in\mathbb{R}^6$, input $=\tau_u=[\tau_{u_x},\tau_{u_y},\tau_{u_z}]^T$:
 
 $$
-\dot x_A=\begin{bmatrix}0_{3\times3}&0.5\,I_{3\times3}\\ 0_{3\times3}&0_{3\times3}\end{bmatrix}x_A+\begin{bmatrix}0_{3\times3}\\ I_q^{-1}\end{bmatrix}\begin{bmatrix}\tau_{u_x}\\ \tau_{u_y}\\ \tau_{u_z}\end{bmatrix} \qquad\text{(17)}
+\dot x_A=\begin{bmatrix}0_{3\times3}&0.5\,I_{3\times3}\\ 0_{3\times3}&0_{3\times3}\end{bmatrix}x_A+\begin{bmatrix}0_{3\times3}\\ I_q^{-1}\end{bmatrix}\begin{bmatrix}\tau_{u_x}\\ \tau_{u_y}\\ \tau_{u_z}\end{bmatrix}
+\qquad\text{(17)}
 $$
 
 **Derivation from Eq. (10)**
 
-*Step 1.* From $\dot q\approx\tfrac12[0;\omega]$, the vector part gives $\dot{\bar q}=0.5\,\omega$. This is the **top row**: $[\,0\ \ 0.5I\,]\,x_A=0.5\,\omega$.
+*Step 1.* From $\dot q\approx\tfrac12[0;\omega]$, the vector part gives $\dot{\bar q}=0.5 \omega$. This is the **top row**: $[ 0  0.5I ] x_A=0.5 \omega$.
 
 *Step 2.* From $J\dot\omega=\tau$, $\dot\omega=J^{-1}\tau$. This is the **bottom row**: the state part is $0$ (angular acceleration does not depend on the current state) and the input part is $J^{-1}$.
 
@@ -580,20 +611,21 @@ $$
 
 ## Eq. (18) — Position subsystem
 
-State $x_P=[p;\ \dot p]\in\mathbb{R}^6$:
+State $x_P=[p; \dot p]\in\mathbb{R}^6$:
 
 $$
-\dot x_P=\begin{bmatrix}0_{3\times3}&I_{3\times3}\\ 0_{3\times3}&0_{3\times3}\end{bmatrix}x_P+\begin{bmatrix}0_{3\times3}\\ \mathrm{diag}\!\left(g,\,-g,\,\tfrac1m\right)\end{bmatrix}\begin{bmatrix}u_{xd}\\ u_{yd}\\ T_d\end{bmatrix} \qquad\text{(18)}
+\dot x_P=\begin{bmatrix}0_{3\times3}&I_{3\times3}\\ 0_{3\times3}&0_{3\times3}\end{bmatrix}x_P+\begin{bmatrix}0_{3\times3}\\ \mathrm{diag}\!\left(g,\,-g,\,\tfrac1m\right)\end{bmatrix}\begin{bmatrix}u_{xd}\\ u_{yd}\\ T_d\end{bmatrix}
+\qquad\text{(18)}
 $$
 
 **Derivation from Eq. (10)**
 
-*Step 1.* Top row: $\dot p=\dot p$, so $[\,0\ \ I\,]\,x_P=\dot p$.
+*Step 1.* Top row: $\dot p=\dot p$, so $[ 0  I ] x_P=\dot p$.
 
 *Step 2.* Bottom row from the translation part of Eq. (10):
 
-- $\ddot x=g\,u_x$
-- $\ddot y=-g\,u_y$
+- $\ddot x=g u_x$
+- $\ddot y=-g u_y$
 - $\ddot z=\dfrac{T-mg}{m}=\dfrac{T_d}{m}$, where $T_d$ is the thrust **deviation from hover thrust**.
 
 *Step 3.* Put these into the matrix form: the diagonal $\mathrm{diag}(g,-g,1/m)$ multiplies the inputs $(u_{xd},u_{yd},T_d)$.
@@ -617,7 +649,8 @@ $$
 ## Eq. (19) — Desired position quaternion
 
 $$
-q_{pd}=[q_{0pd},\ q_{1pd},\ q_{2pd},\ 0]^T \qquad\text{(19)}
+q_{pd}=[q_{0pd},\ q_{1pd},\ q_{2pd},\ 0]^T
+\qquad\text{(19)}
 $$
 
 **Meaning and origin**
@@ -628,7 +661,8 @@ $$
 ## Eq. (20) — Desired yaw quaternion
 
 $$
-q_{zd}=\big[q_{0zd},\ 0,\ 0,\ q_{3zd}\big]^T=\Big[\cos\tfrac{\psi_d}{2},\ 0,\ 0,\ \sin\tfrac{\psi_d}{2}\Big]^T \qquad\text{(20)}
+q_{zd}=\big[q_{0zd},\ 0,\ 0,\ q_{3zd}\big]^T=\Big[\cos\tfrac{\psi_d}{2},\ 0,\ 0,\ \sin\tfrac{\psi_d}{2}\Big]^T
+\qquad\text{(20)}
 $$
 
 **Derivation:** Eq. (5) with rotation axis $u=[0,0,1]^T$ (the $z$-axis) and angle $\alpha=\psi_d$. The second and third elements are zero because the axis has no $x$ or $y$ component. ($\psi_d$ is the 4th flat output.)
@@ -636,7 +670,8 @@ $$
 ## Eq. (21) — Combined desired attitude
 
 $$
-q_d=q_{pd}\otimes q_{zd} \qquad\text{(21)}
+q_d=q_{pd}\otimes q_{zd}
+\qquad\text{(21)}
 $$
 
 **Meaning:** "do the yaw rotation and the tilt rotation together" by multiplying the two quaternions with Eq. (2). The **order matters** because $\otimes$ is not commutative (the cross-product term in Eq. 2 changes sign when the factors are swapped). The result is again a unit quaternion.
@@ -650,7 +685,8 @@ $$
 ## Eq. (22) — Cost function
 
 $$
-J(x,u)=\frac12\int_0^{\infty}\Big(x^T(t)\,Q\,x(t)+u^T(t)\,R\,u(t)\Big)\,dt \qquad\text{(22)}
+J(x,u)=\frac12\int_0^{\infty}\Big(x^T(t)\,Q\,x(t)+u^T(t)\,R\,u(t)\Big)\,dt
+\qquad\text{(22)}
 $$
 
 **Meaning of each part**
@@ -702,7 +738,8 @@ $$
 *Step 6.* The matrix in brackets must be zero:
 
 $$
-\boxed{A^TP+PA-PBR^{-1}B^TP+Q=0} \qquad\text{(23)}
+A^TP+PA-PBR^{-1}B^TP+Q=0
+\qquad\text{(23)}
 $$
 
 This is the **algebraic Riccati equation (ARE)**.
@@ -727,7 +764,7 @@ This is the **algebraic Riccati equation (ARE)**.
 
 ## Worked example 1 — scalar system *(extra, for exam practice)*
 
-$\dot x=u$ so $A=0,\ B=1$. ARE: $0+0-P\cdot\frac1R\cdot P+Q=0\Rightarrow P=\sqrt{QR}$, then $L=P/R=\sqrt{Q/R}$.
+$\dot x=u$ so $A=0, B=1$. ARE: $0+0-P\cdot\frac1R\cdot P+Q=0\Rightarrow P=\sqrt{QR}$, then $L=P/R=\sqrt{Q/R}$.
 
 | $Q$ | $R$ | $P$ | $L$ | Control law |
 |---|---|---|---|---|
@@ -737,19 +774,16 @@ $\dot x=u$ so $A=0,\ B=1$. ARE: $0+0-P\cdot\frac1R\cdot P+Q=0\Rightarrow P=\sqrt
 
 ## Worked example 2 — double integrator (like each axis of Eq. 18) *(extra)*
 
-$\ddot x=u$, so $A$ and $B$ are the double-integrator matrices below. Take $Q=I,\ R=1$ and $P$ symmetric:
+$\ddot x=u$ gives the matrices below. Take $Q=I$, $R=1$, and let $P$ be the unknown symmetric matrix:
 
 $$
-A=\begin{bmatrix}0&1\\0&0\end{bmatrix},\qquad B=\begin{bmatrix}0\\1\end{bmatrix},\qquad
-P=\begin{bmatrix}p_1&p_2\\p_2&p_3\end{bmatrix}
+A=\begin{bmatrix}0&1\\0&0\end{bmatrix},\quad B=\begin{bmatrix}0\\1\end{bmatrix},\quad P=\begin{bmatrix}p_1&p_2\\p_2&p_3\end{bmatrix}
 $$
 
-*Step 1.* The three products:
+*Step 1.* Work out the three matrix products that appear in Eq. (23):
 
 $$
-A^TP=\begin{bmatrix}0&0\\p_1&p_2\end{bmatrix},\qquad
-PA=\begin{bmatrix}0&p_1\\0&p_2\end{bmatrix},\qquad
-PBB^TP=\begin{bmatrix}p_2^2&p_2p_3\\p_2p_3&p_3^2\end{bmatrix}
+A^TP=\begin{bmatrix}0&0\\p_1&p_2\end{bmatrix},\quad PA=\begin{bmatrix}0&p_1\\0&p_2\end{bmatrix},\quad PBB^TP=\begin{bmatrix}p_2^2&p_2p_3\\p_2p_3&p_3^2\end{bmatrix}
 $$
 
 *Step 2.* Eq. (23) entry by entry:
@@ -758,14 +792,13 @@ $$
 - (1,2): $p_1-p_2p_3=0\Rightarrow p_1=p_3$
 - (2,2): $2p_2-p_3^2+1=0\Rightarrow p_3^2=3\Rightarrow p_3=\sqrt3$
 
-*Step 3.* From $P$:
+*Step 3.* Putting the values together:
 
 $$
-P=\begin{bmatrix}\sqrt3&1\\1&\sqrt3\end{bmatrix},\qquad
-L=R^{-1}B^TP=[\,1\ \ \sqrt3\,]\approx[1,\ 1.73]
+P=\begin{bmatrix}\sqrt3&1\\1&\sqrt3\end{bmatrix},\qquad L=R^{-1}B^TP=[\,1\ \ \sqrt3\,]\approx[1,\ 1.73]
 $$
 
-*Step 4.* Control law: $u=-1\cdot x-1.73\,\dot x$, closed loop $\ddot x+1.73\dot x+x=0$, so $\omega_n=1$, $\zeta=0.866$: stable and well damped.
+*Step 4.* Control law: $u=-1\cdot x-1.73 \dot x$, closed loop $\ddot x+1.73\dot x+x=0$, so $\omega_n=1$, $\zeta=0.866$: stable and well damped.
 
 ---
 
@@ -809,20 +842,20 @@ Mention these only if asked; they show you checked the maths.
 
 | Topic | Formula |
 |---|---|
-| Quaternion | $q=q_0+\bar q$, $\ \lVert q\rVert=1$ |
+| Quaternion | $q=q_0+\bar q$, $ \lVert q\rVert=1$ |
 | Product | $q\otimes r=(q_0r_0-\bar q\cdot\bar r)+(r_0\bar q+q_0\bar r+\bar q\times\bar r)$ |
-| Conjugate / inverse | $q^*=q_0-\bar q$, $\ q^{-1}=q^*/\lVert q\rVert^2$ (unit: $q^{-1}=q^*$) |
-| Rotate a vector | $v'=q\otimes v\otimes q^*=R_qv$, $\ R_q^{-1}=R_q^T$ |
+| Conjugate / inverse | $q^*=q_0-\bar q$, $ q^{-1}=q^*/\lVert q\rVert^2$ (unit: $q^{-1}=q^*$) |
+| Rotate a vector | $v'=q\otimes v\otimes q^*=R_qv$, $ R_q^{-1}=R_q^T$ |
 | Axis–angle | $q=\cos\frac\alpha2+u\sin\frac\alpha2$ |
 | Kinematics | $\dot q=\frac12q\otimes\omega$ |
 | Translation | $\ddot p=q\otimes\frac Tm\otimes q^*+\bar g$ |
 | Rotation | $J\dot\omega=\tau-\omega\times J\omega$ |
-| Hover linear model | $\ddot x=g\,u_x,\ \ddot y=-g\,u_y,\ \ddot z=T_d/m,\ J\dot\omega=\tau$ |
+| Hover linear model | $\ddot x=g u_x, \ddot y=-g u_y, \ddot z=T_d/m, J\dot\omega=\tau$ |
 | Flat outputs | $[x,y,z,\psi]^T$ |
 | Desired pitch | $\theta_d=\arctan\frac{\ddot x\cos\psi+\ddot y\sin\psi}{\ddot z+g}$ |
 | Desired attitude | $q_d=q_{pd}\otimes q_{zd}$ |
 | LQR cost | $J=\frac12\int_0^\infty(x^TQx+u^TRu)dt$ |
-| LQR law | $u=-Lx,\ L=R^{-1}B^TP$ |
+| LQR law | $u=-Lx, L=R^{-1}B^TP$ |
 | ARE | $A^TP+PA-PBR^{-1}B^TP+Q=0$ |
 
 ## Definitions
@@ -846,7 +879,7 @@ Mention these only if asked; they show you checked the maths.
 1. **Why quaternions?** No gimbal lock, 4 numbers with one constraint, cheap to compose and to invert (conjugate).
 2. **How does $q\otimes v\otimes q^*$ rotate a vector?** Expanding gives Rodrigues' formula (Eq. 4c to Eq. 5), the same as multiplying by $R_q$.
 3. **Where does $\dot q=\frac12q\otimes\omega$ come from?** A small rotation $\delta q\approx[1,\frac12\omega dt]$ is composed with $q$ (Eq. 6 derivation).
-4. **How is the linear model obtained?** Hover point $q=[1,0,0,0],\ \omega=0,\ T=mg$; drop second-order terms in Eq. (8) to get Eq. (10), then Eq. (17), (18).
+4. **How is the linear model obtained?** Hover point $q=[1,0,0,0], \omega=0, T=mg$; drop second-order terms in Eq. (8) to get Eq. (10), then Eq. (17), (18).
 5. **What makes the quadrotor flat and why does it help?** The four outputs $x,y,z,\psi$ determine every state and input (Eq. 15), so planning happens in output space with simple formulas.
 6. **Derive $\theta_d$.** Combine $\ddot x\cos\psi+\ddot y\sin\psi=\frac Tm\cos\phi\sin\theta$ with $\ddot z+g=\frac Tm\cos\phi\cos\theta$ and divide.
 7. **Derive the LQR gain.** HJB with $V=\frac12x^TPx$ gives $u=-R^{-1}B^TPx$, and substituting back gives the ARE.
@@ -858,4 +891,6 @@ Mention these only if asked; they show you checked the maths.
 
 # 9. Reference
 
-Choutri, K., Lagha, M., Dala, L., & Lipatov, I. (2017). *Quadrotors trajectory tracking using a differential flatness-quaternion based approach.* Proceedings of the 2017 7th International Conference on Modeling, Simulation, and Applied Optimization (ICMSAO), IEEE. DOI: <https://doi.org/10.1109/ICMSAO.2017.7934901>
+Choutri, K., Lagha, M., Dala, L., & Lipatov, I. (2017). *Quadrotors trajectory tracking using a differential flatness-quaternion based approach.* Proceedings of the 2017 7th International Conference on Modeling, Simulation, and Applied Optimization (ICMSAO), IEEE. DOI: <https://doi.org/10.1109/ICMSAO.2017.7934901>$$
+
+$$
