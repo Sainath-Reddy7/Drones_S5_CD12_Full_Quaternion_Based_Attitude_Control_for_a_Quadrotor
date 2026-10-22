@@ -89,7 +89,7 @@ logging (eq. 16):
 ```
 
 The law is derivative-free and needs no integral term: torque → ω̇ → attitude is
-a double integrator, so steady-state error decays to zero on its own. Where the paper's
+a double integrator,so steady-state error decays to zero on its own. Where the paper's
 sign on eq. (18) differs from the textbook convention, it is **preserved literally**, not
 silently corrected (see Fidelity notes).
 
@@ -133,7 +133,7 @@ Essentially no overshoot, ≈ 2 s settling per axis (paper Fig. 3–4).
 Measured lag ≈ 0.4–0.5 s vs. the paper's "about 0.5 second"; torque stays linear
 throughout steady state (paper Fig. 5–6). *(One logged sample at $t=0.001$ s saturates —
 a startup transient, since the phase-shifted reference starts at 0.5 rad, not a tracking
-defect.)*
+defect).*
 
 <p align="center">
   <img src="docs/figures/sine_attitude.png" width="600" alt="Sine tracking: reference vs. output">
