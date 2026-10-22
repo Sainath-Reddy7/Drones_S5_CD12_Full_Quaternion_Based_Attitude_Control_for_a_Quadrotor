@@ -56,6 +56,25 @@ def strip_inline_math(s: str) -> str:
     return re.sub(r"\$([^$]*)\$", r"\1", s)
 
 
+def normalize_line(s: str) -> str:
+    """Strip markdown bold/italic emphasis FIRST (spans may wrap math and
+    break MATLAB's inline-equation pairing), then TeX-normalise ONLY
+    inside $...$ spans; prose unicode (dashes, arrows, x) untouched."""
+    s = re.sub(r"\*\*(.+?)\*\*", r"\1", s)          # bold (may wrap math)
+    s = re.sub(r"(?<!\*)\*([A-Za-z(][^*]*?)\*(?!\*)", r"\1", s)  # italics
+    # a double-quote hugging $ breaks MATLAB's inline-equation pairing
+    s = s.replace('"$', '" $').replace('$"', '$ "')
+    # punctuation-only math spans (+/-) do not convert: emit as plain text
+    s = re.sub(r"\$([+=<>-]+)\$", r"\1", s)
+    out = []
+    for seg in re.split(r"(\$[^$]+\$)", s):
+        if seg.startswith("$") and seg.endswith("$") and len(seg) > 2:
+            out.append("$" + tex_normalize(seg[1:-1]) + "$")
+        else:
+            out.append(seg)
+    return "".join(out)
+
+
 def convert(md: str) -> str:
     out = []
     in_fence = False
@@ -119,22 +138,17 @@ def convert(md: str) -> str:
             out.append("%% " + strip_inline_math(head))
         elif s.lstrip().startswith("- "):
             item = s.lstrip()[2:]
-            item = re.sub(r"\*\*(.+?)\*\*", r"\1", item)
-            out.append("% * " + item if "$" not in item else
-                       "% * " + tex_normalize(item))
+            out.append("% * " + normalize_line(item))
         elif re.match(r"^\d+\. ", s):
             item = re.sub(r"^\d+\. ", "", s)
-            item = re.sub(r"\*\*(.+?)\*\*", r"\1", item)
-            out.append("% " + s.split(".")[0] + ". " + item)
+            out.append("% " + s.split(".")[0] + ". " + normalize_line(item))
+            out.append("%")  # keep numbered items as separate paragraphs
         elif s.startswith("> "):
-            body = re.sub(r"\*\*(.+?)\*\*", r"\1", s[2:])
-            out.append("% NOTE: " + body)
+            out.append("% NOTE: " + normalize_line(s[2:]))
         elif s.strip() == "---":
             pass
         else:
-            body = re.sub(r"\*\*(.+?)\*\*", r"\1", s)
-            if "$" in body:
-                body = tex_normalize(body)
+            body = normalize_line(s)
             out.append("% " + body if body else "%")
         i += 1
 
