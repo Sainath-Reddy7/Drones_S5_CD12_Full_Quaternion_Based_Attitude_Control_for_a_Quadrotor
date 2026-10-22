@@ -173,7 +173,7 @@
 %
 % Step 3. Expand the last term with $v\times\bar{q}=-\bar{q}\times v$ and the identity $(\bar{q}\times v)\times\bar{q}=v (\bar{q}\cdot\bar{q})-\bar{q} (v\cdot\bar{q})$:
 %
-% $$v'=(q_0^2-\bar{q}\cdot\bar{q})\,v+2(\bar{q}\cdot v)\,\bar{q}+2q_0\,(\bar{q}\times v) \;\;\;\;\mathrm{(4c)}$$
+% $$v'=(q_0^2-\bar{q}\cdot\bar{q})\;v+2(\bar{q}\cdot v)\;\bar{q}+2q_0\;(\bar{q}\times v) \;\;\;\;\mathrm{(4c)}$$
 %
 %
 % Step 4. Write each piece as a matrix times $v$:
@@ -197,7 +197,7 @@
 % * $R_q$ is orthogonal: $R_q^{-1}=R_q^T$ and $\mathrm{det} R_q=1$ (it is a pure rotation, with no stretching). This is the statement under Eq. (4) in the paper.
 % * Third column of $R_q$ = where the body $z$-axis (thrust direction) points in the ground frame:
 %
-% $$R_q\,e_3=[2(q_1q_3+q_2q_0);  2(q_2q_3-q_1q_0);  q_0^2-q_1^2-q_2^2+q_3^2]$$
+% $$R_q\;e_3=[2(q_1q_3+q_2q_0);  2(q_2q_3-q_1q_0);  q_0^2-q_1^2-q_2^2+q_3^2]$$
 %
 %
 % This column is used in Eq. (10).
@@ -216,12 +216,12 @@
 %
 % Step 2. Use $c=\cos\frac\alpha2, s=\sin\frac\alpha2$:
 %
-% $$v'=(c^2-s^2)v+2s^2(u\cdot v)u+2cs\,(u\times v)$$
+% $$v'=(c^2-s^2)v+2s^2(u\cdot v)u+2cs\;(u\times v)$$
 %
 %
 % Step 3. Double-angle identities: $c^2-s^2=\cos\alpha$, $2cs=\sin\alpha$, $2s^2=1-\cos\alpha$:
 %
-% $$v'=\cos\alpha\,v+\sin\alpha\,(u\times v)+(1-\cos\alpha)(u\cdot v)\,u$$
+% $$v'=\cos\alpha\;v+\sin\alpha\;(u\times v)+(1-\cos\alpha)(u\cdot v)\;u$$
 %
 %
 % Step 4. This is exactly Rodrigues' rotation formula: rotate $v$ by angle $\alpha$ about axis $u$.
@@ -233,7 +233,7 @@
 
 %% Eq. (6) — Quaternion kinematics
 %
-% $$\dot q=\frac12\,q\otimes\omega \;\;\;\;\mathrm{(6)}$$
+% $$\dot q=\frac12\;q\otimes\omega \;\;\;\;\mathrm{(6)}$$
 %
 %
 % Meaning: how the orientation changes when the body spins with angular velocity $\omega$ (body frame). $\omega$ is used as the pure quaternion $(0,\omega)$.
@@ -244,7 +244,7 @@
 %
 % Step 2. By Eq. (5), this small rotation is
 %
-% $$\delta q=[\cos\frac{||\omega|| dt}{2},\;\;u\sin\frac{||\omega|| dt}{2}]\approx[1,\;\frac12\omega\,dt]$$
+% $$\delta q=[\cos\frac{||\omega|| dt}{2},\;\;u\sin\frac{||\omega|| dt}{2}]\approx[1,\;\frac12\omega\;dt]$$
 %
 %
 % (because $\cos(\mathrm{small})\approx1$ and $\sin(\mathrm{small})\approx$ small).
@@ -253,7 +253,7 @@
 %
 % Step 4. Difference quotient:
 %
-% $$\dot q=\mathrm{lim}_{dt\rightarrow0}\frac{q\otimes\delta q-q}{dt}=q\otimes\frac{(0,\;\frac12\omega\,dt)}{dt}=\frac12\,q\otimes\omega$$
+% $$\dot q=\mathrm{lim}_{dt\rightarrow0}\frac{q\otimes\delta q-q}{dt}=q\otimes\frac{(0,\;\frac12\omega\;dt)}{dt}=\frac12\;q\otimes\omega$$
 %
 %
 % Where used: third row of Eq. (8). At hover, $q\approx[1,0,0,0]$, so $\dot{\bar{q}}\approx\frac12\omega$, which is the "0.5" in Eq. (17).
@@ -282,11 +282,11 @@
 %
 % Quaternion → Euler (from comparing Eq. 4b with the Euler rotation matrix):
 %
-% $$\phi&=\mathrm{atan2}(2(q_0q_1+q_2q_3),\;q_0^2-q_1^2-q_2^2+q_3^2)$$
+% $$\phi =\mathrm{atan2}(2(q_0q_1+q_2q_3),\;q_0^2-q_1^2-q_2^2+q_3^2)$$
 %
-% $$;\theta&=\mathrm{arcsin}(2(q_0q_2-q_3q_1))$$
+% $$\theta =\mathrm{arcsin}(2(q_0q_2-q_3q_1))$$
 %
-% $$;\psi&=\mathrm{atan2}(2(q_0q_3+q_1q_2),\;q_0^2+q_1^2-q_2^2-q_3^2)$$
+% $$\psi =\mathrm{atan2}(2(q_0q_3+q_1q_2),\;q_0^2+q_1^2-q_2^2-q_3^2) \;\;\;\;\mathrm{(7b)}$$
 %
 %
 % Derivation. For ZYX Euler angles: $R_{31}=-\sin\theta$, $R_{32}=\cos\theta\sin\phi$, $R_{33}=\cos\theta\cos\phi$, $R_{21}=\cos\theta\sin\psi$, $R_{11}=\cos\theta\cos\psi$. Match these to entries of Eq. (4b):
@@ -308,7 +308,7 @@
 
 %% Eq. (8) — Full nonlinear model (Newton–Euler with quaternions)
 %
-% $$\dot x=\frac{d}{dt}[p;  \dot p;  q;  \omega]= [\dot p; [2pt] q\otimes\frac{T}{m}\otimes q^*+\bar{g}; [6pt] \frac12\,q\otimes\omega; [6pt] J^{-1}(\tau-\omega\times J\omega)] \;\;\;\;\mathrm{(8)}$$
+% $$\dot x=\frac{d}{dt}[p;  \dot p;  q;  \omega]= [\dot p;  q\otimes\frac{T}{m}\otimes q^*+\bar{g};  \frac12\;q\otimes\omega;  J^{-1}(\tau-\omega\times J\omega)] \;\;\;\;\mathrm{(8)}$$
 %
 %
 % State: $p$ (3) + $\dot p$ (3) + $q$ (4) + $\omega$ (3) = 13 states. Inputs: $T,\tau_x,\tau_y,\tau_z$ = 4 inputs. That is why the system is underactuated (6 degrees of freedom, 4 inputs).
@@ -349,7 +349,7 @@
 
 %% Eq. (9) — Motors → thrust and torques
 %
-% $$[T;  \tau_{u_x};  \tau_{u_y};  \tau_{u_z}]= [\sum_{i=1}^{4}k_i\omega_i^2;  l\,(k_1\omega_1^2-k_2\omega_2^2-k_3\omega_3^2+k_4\omega_4^2);  l\,(k_1\omega_1^2+k_2\omega_2^2-k_3\omega_3^2-k_4\omega_4^2);  \sum_{i=1}^{4}\tau_i(-1)^{i}] \;\;\;\;\mathrm{(9)}$$
+% $$[T;  \tau_{u_x};  \tau_{u_y};  \tau_{u_z}]= [\sum_{i=1}^{4}k_i\omega_i^2;  l\;(k_1\omega_1^2-k_2\omega_2^2-k_3\omega_3^2+k_4\omega_4^2);  l\;(k_1\omega_1^2+k_2\omega_2^2-k_3\omega_3^2-k_4\omega_4^2);  \sum_{i=1}^{4}\tau_i(-1)^{i}] \;\;\;\;\mathrm{(9)}$$
 %
 %
 % Paper typo: The paper prints $(-1)^2$ in the last row, which would always be $+1$. It should be $(-1)^i$, so that the reaction torques alternate in sign.
@@ -372,7 +372,7 @@
 %
 % Operating point (hover): $\dot p=[0,0,0]^T$, $\omega=[0,0,0]^T$, $q=[1,0,0,0]^T$.
 %
-% $$J\dot\omega=\tau,\;\;\;\; \dot q=\frac12[0;  \omega],\;\;\;\; m\ddot p=[mg\,(2q_2);  -mg\,(2q_1);  T]-[0; 0; mg] =[mg\,u_x;  -mg\,u_y;  T]-[0; 0; mg] \;\;\;\;\mathrm{(10)}$$
+% $$J\dot\omega=\tau,\;\;\;\; \dot q=\frac12[0;  \omega],\;\;\;\; m\ddot p=[mg\;(2q_2);  -mg\;(2q_1);  T]-[0; 0; mg] =[mg\;u_x;  -mg\;u_y;  T]-[0; 0; mg] \;\;\;\;\mathrm{(10)}$$
 %
 %
 % with $u_x=2q_2$ and $u_y=2q_1$ (small tilt values).
@@ -439,9 +439,9 @@
 % $${X}=[x; y; z; \psi] \;\;\;\;\mathrm{(13)}$$
 %
 %
-% $$[x,\,y,\,z]^T&=[{X}_1,\,{X}_2,\,{X}_3]^T$$
+% $$[x,\;y,\;z]^T =[{X}_1,\;{X}_2,\;{X}_3]^T$$
 %
-% $$;[\dot x,\,\dot y,\,\dot z]^T&=[\dot{{X}}_1,\,\dot{{X}}_2,\,\dot{{X}}_3]^T$$
+% $$[\dot x,\;\dot y,\;\dot z]^T =[\dot{X}_1,\;\dot{X}_2,\;\dot{X}_3]^T \;\;\;\;\mathrm{(14)}$$
 %
 %
 % * Four flat outputs for four inputs. Position gives velocity and acceleration by differentiating, which is "trivial".
@@ -450,14 +450,14 @@
 
 %% Eq. (15) — Desired pitch and roll from the desired acceleration
 %
-% $$\theta_d=\mathrm{arctan}(\frac{\ddot{{X}}_1\cos{X}_4+\ddot{{X}}_2\sin{X}_4}{\ddot{{X}}_3+g}) \;\;\;\;\mathrm{(15a)}$$
+% $$\theta_d=\mathrm{arctan}(\frac{\ddot{X}_1\cos{X}_4+\ddot{X}_2\sin{X}_4}{\ddot{X}_3+g}) \;\;\;\;\mathrm{(15a)}$$
 %
 %
 % Derivation (this is the key flatness step)
 %
 % Step 1. Take the translation equation of Eq. (8) and write the rotation $R$ with Euler angles ($R=R_z(\psi)R_y(\theta)R_x(\phi)$). The thrust direction (third column of $R$) is:
 %
-% $$R\,e_3=[\cos\phi\sin\theta\cos\psi+\sin\phi\sin\psi;  \cos\phi\sin\theta\sin\psi-\sin\phi\cos\psi;  \cos\phi\cos\theta]$$
+% $$R\;e_3=[\cos\phi\sin\theta\cos\psi+\sin\phi\sin\psi;  \cos\phi\sin\theta\sin\psi-\sin\phi\cos\psi;  \cos\phi\cos\theta]$$
 %
 %
 % Step 2. Newton's law $\ddot p=\frac Tm Re_3+[0,0,-g]^T$ gives three equations:
@@ -478,10 +478,10 @@
 %
 % Step 5 — roll. Form $\ddot x\sin\psi-\ddot y\cos\psi=\frac Tm\sin\phi$. Divide by $\frac Tm\cos\phi=(\ddot z+g)/\cos\theta$:
 %
-% $$\phi_d=\mathrm{arctan}(\frac{\ddot{{X}}_1\sin{X}_4-\ddot{{X}}_2\cos{X}_4}{\ddot{{X}}_3+g}\cdot\cos\theta_d) \;\;\;\;\mathrm{(15b)}$$
+% $$\phi_d=\mathrm{arctan}(\frac{\ddot{X}_1\sin{X}_4-\ddot{X}_2\cos{X}_4}{\ddot{X}_3+g}\cdot\cos\theta_d) \;\;\;\;\mathrm{(15b)}$$
 %
 %
-% Paper typo: The paper prints $\ddot{{X}}_1\cos{X}_4-\ddot{{X}}_2\sin{X}_4$ for roll. For $\psi=0$ the correct roll should depend on the $y$-acceleration (side motion needs roll), which the paper's form does not show. If asked, say: "Eq. (15a) matches my derivation exactly. For (15b) my Z-Y-X derivation gives sin/cos swapped; the paper may use a different sign or frame convention."
+% Paper typo: The paper prints $\ddot{X}_1\cos{X}_4-\ddot{X}_2\sin{X}_4$ for roll. For $\psi=0$ the correct roll should depend on the $y$-acceleration (side motion needs roll), which the paper's form does not show. If asked, say: "Eq. (15a) matches my derivation exactly. For (15b) my Z-Y-X derivation gives sin/cos swapped; the paper may use a different sign or frame convention."
 %
 % Step 6 — thrust (needed for the altitude controller). From the third equation:
 %
@@ -522,7 +522,7 @@
 %
 % State $x_A=[\bar{q}; \omega]\in{R}^6$, input $=\tau_u=[\tau_{u_x},\tau_{u_y},\tau_{u_z}]^T$:
 %
-% $$\dot x_A=[0_{3\times3}, 0.5\,I_{3\times3};  0_{3\times3}, 0_{3\times3}]x_A+[0_{3\times3};  I_q^{-1}][\tau_{u_x};  \tau_{u_y};  \tau_{u_z}] \;\;\;\;\mathrm{(17)}$$
+% $$\dot x_A=[0_{3\times3}, 0.5\;I_{3\times3};  0_{3\times3}, 0_{3\times3}]x_A+[0_{3\times3};  I_q^{-1}][\tau_{u_x};  \tau_{u_y};  \tau_{u_z}] \;\;\;\;\mathrm{(17)}$$
 %
 %
 % Derivation from Eq. (10)
@@ -540,7 +540,7 @@
 %
 % State $x_P=[p; \dot p]\in{R}^6$:
 %
-% $$\dot x_P=[0_{3\times3}, I_{3\times3};  0_{3\times3}, 0_{3\times3}]x_P+[0_{3\times3};  \mathrm{diag}(g,\,-g,\,\frac1m)][u_{xd};  u_{yd};  T_d] \;\;\;\;\mathrm{(18)}$$
+% $$\dot x_P=[0_{3\times3}, I_{3\times3};  0_{3\times3}, 0_{3\times3}]x_P+[0_{3\times3};  \mathrm{diag}(g,\;-g,\;\frac1m)][u_{xd};  u_{yd};  T_d] \;\;\;\;\mathrm{(18)}$$
 %
 %
 % Derivation from Eq. (10)
@@ -613,7 +613,7 @@
 
 %% Eq. (22) — Cost function
 %
-% $$J(x,u)=\frac12\int_0^{\infty}(x^T(t)\,Q\,x(t)+u^T(t)\,R\,u(t))\,dt \;\;\;\;\mathrm{(22)}$$
+% $$J(x,u)=\frac12\int_0^{\infty}(x^T(t)\;Q\;x(t)+u^T(t)\;R\;u(t))\;dt \;\;\;\;\mathrm{(22)}$$
 %
 %
 % Meaning of each part
@@ -637,7 +637,7 @@
 %
 % Step 2 — optimality condition (Hamilton–Jacobi–Bellman). At the optimum, the running cost plus the rate of change of $V$ is zero:
 %
-% $$\min_u[\frac12(x^TQx+u^TRu)+x^TP\,(Ax+Bu)]=0$$
+% $$\min_u[\frac12(x^TQx+u^TRu)+x^TP\;(Ax+Bu)]=0$$
 %
 %
 % (because $\dot V=\frac{\partial V}{\partial x}\dot x=x^TP(Ax+Bu)$).
@@ -721,7 +721,7 @@
 %
 % Step 3. Putting the values together:
 %
-% $$P=[\sqrt3, 1; 1, \sqrt3],\;\;\;\; L=R^{-1}B^TP=[\,1\;\;\sqrt3\,]\approx[1,\;1.73]$$
+% $$P=[\sqrt3, 1; 1, \sqrt3],\;\;\;\; L=R^{-1}B^TP=[\;1\;\;\sqrt3\;]\approx[1,\;1.73]$$
 %
 %
 % Step 4. Control law: $u=-1\cdot x-1.73 \dot x$, closed loop $\ddot x+1.73\dot x+x=0$, so $\omega_n=1$, $\zeta=0.866$: stable and well damped.

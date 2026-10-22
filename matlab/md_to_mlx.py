@@ -36,7 +36,7 @@ REPL = [
     # MATLAB's equation importer supports no \begin{} environments and no
     # \\ row breaks (its TeX table = the classic text-TeX subset), so:
     (r"\\qquad", r"\\;\\;\\;\\;"), (r"\\quad", r"\\;\\;"),
-    (r"\\ ", r"\\;"),
+    (r"\\ ", r"\\;"), (r"\\,", r"\\;"),
     (r"\\left", ""), (r"\\right", ""),
     (r"\\to(?![a-zA-Z])", r"\\rightarrow"), (r"\\ge(?![a-zA-Z])", r"\\geq"),
     (r"\\Rightarrow", "=>"), (r"\\Leftrightarrow", "<=>"),
@@ -55,6 +55,7 @@ def tex_normalize(s: str) -> str:
     # matrices -> bracket notation first (this removes their & and \\ too)
     def mat(m):
         inner = m.group(1).replace("&", ", ").replace("\\\\", "; ")
+        inner = re.sub(r"\[\d+pt\]", "", inner)  # \\[2pt] row-space hacks
         return "[" + inner.strip() + "]"
     s = MATRIX_RE.sub(mat, s)
     for a, b in REPL:
@@ -69,6 +70,8 @@ def tex_normalize(s: str) -> str:
     s = re.sub(r"\\frac (\\[a-zA-Z]+) 2", r"\\frac{\1}{2}", s)
     s = re.sub(r"\\bar ([a-zA-Z])", r"\\bar{\1}", s)
     s = re.sub(r"\\bar\{q\}", r"\\bar{q}", s)
+    # nested braces produced by the \mathcal X -> {X} rule: \dot{{X}} -> \dot{X}
+    s = re.sub(r"\{(\{[A-Za-z]+\})\}", r"\1", s)
     return s
 
 
@@ -96,14 +99,30 @@ def normalize_line(s: str) -> str:
 
 
 def split_aligned(eq: str) -> list:
-    """Split one normalised display TeX string into one-or-more strings:
-    aligned environments become separate rows (MATLAB has no multi-line
-    equations); alignment '&' before '=' is dropped."""
+    """Split one RAW (pre-tex_normalize) display TeX string into rows.
+    aligned environments become separate single-line equations (MATLAB has
+    no multi-line equations); every alignment '&' is dropped; a trailing
+    \\tag{N} or \\qquad\\text{(N)} after \\end{aligned} is kept on the last
+    row. tex_normalize must run AFTER this: its '\\ ' rule corrupts the
+    '\\\\' row separators and its group capture used to drop the tag."""
     m = ALIGNED_RE.search(eq)
     if not m:
         return [eq]
-    rows = [r.strip().lstrip("&").strip() for r in m.group(1).split("\\\\")]
-    return [r for r in rows if r]
+    tail = eq[m.end():]
+    tm = (re.search(r"\\tag\{([^{}]*)\}", tail) or
+          re.search(r"\\(?:qquad|quad|;)\\text\{([^{}]*)\}", tail))
+    tag = tm.group(1) if tm else None
+    if tm:
+        tail = (tail[:tm.start()] + tail[tm.end():]).strip()
+    rows = [re.sub(r"\s*&\s*", " ", r).strip()
+            for r in re.split(r"\\\\\s*", m.group(1))]
+    rows = [re.sub(r"\[\d+pt\]", "", r).strip() for r in rows]  # \\[2pt] hacks
+    rows = [r for r in rows if r]
+    if rows and tag:
+        rows[-1] = rows[-1] + " \\qquad\\text{" + tag + "}"
+    if rows and tail:  # any residual content after \end{aligned}
+        rows[-1] = rows[-1] + " " + tail
+    return rows
 
 
 def convert(md: str) -> str:
@@ -133,9 +152,10 @@ def convert(md: str) -> str:
         if ln.strip() == "$$":
             if in_disp:
                 eq = " ".join(x.strip() for x in disp_buf if x.strip())
-                for row in split_aligned(tex_normalize(eq)):
-                    out.append("% $$" + row + "$$")
-                    out.append("%")
+                if eq:
+                    for row in split_aligned(eq):
+                        out.append("% $$" + tex_normalize(row) + "$$")
+                        out.append("%")
                 disp_buf = []
             in_disp = not in_disp
             i += 1

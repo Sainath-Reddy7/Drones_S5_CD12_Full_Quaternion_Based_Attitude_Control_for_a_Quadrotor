@@ -47,9 +47,10 @@ def md_blocks(md: str):
                 eq.append(lines[i].strip())
                 i += 1
             i += 1  # closer
-            for row in split_aligned(
-                    tex_normalize(" ".join(x for x in eq if x))):
-                blocks.append(("E", row))
+            joined = " ".join(x for x in eq if x)
+            if joined:  # an empty $$ block carries no content on either side
+                for row in split_aligned(joined):
+                    blocks.append(("E", tex_normalize(row)))
             continue
         if s.startswith("|"):
             if re.match(r"^\|[\s:|-]+\|$", s):

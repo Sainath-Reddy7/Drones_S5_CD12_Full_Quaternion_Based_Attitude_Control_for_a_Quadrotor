@@ -47,17 +47,38 @@ Conversion errors found by the two-pass diff and fixed in `md_to_mlx.py`:
     `\Rightarrow`→`=>`, `\to`→`\rightarrow`, `\ge`→`\geq`. Final
     inventory: 37 unique commands, every one inside MATLAB's documented
     TeX table; zero environments, zero row breaks.
+11. **Aligned-row defects (screenshot round)**: the two `aligned` blocks
+    (Eqs. 7b, 14) were split into rows *after* TeX normalisation, which
+    (a) left the alignment `&` in mid-row position (`\phi&=`) so MATLAB
+    refused to render those five equations at all (they fell back to
+    literal source text), (b) let the `\ `-rule corrupt the `\\` row
+    separators into stray leading `;` on rows 2-3, and (c) dropped the
+    `\qquad\text{(7b)}`/`(14)` tags that sit after `\end{aligned}`.
+    Fixed by splitting rows on the raw TeX first, dropping every `&`,
+    and re-attaching the tag to the last row. The same order bug existed
+    in `mlx_verify.py`'s markdown parser (it validated the broken
+    output against itself); fixed identically.
+12. **Residual LaTeX hacks**: literal `[2pt]`/`[6pt]` row-spacing hacks
+    (`\\[2pt]`) survived inside Eq. (8)'s matrix; thin spaces `\,` and
+    nested braces from the `\mathcal` rule (`\dot{{X}}`, `\ddot{{X}}` in
+    Eqs. 14/15a/15b) are not in MATLAB's TeX table. All normalised
+    (`[Npt]` stripped, `\,`→`\;`, `{{X}}`→`{X}`).
 
 ## B. Verification performed
 
 Content (automated, two independent passes):
-- Passes after the rendering-vocabulary round: **350 markdown blocks ↔
-  350 MLX blocks, aligned 1:1, 0 mismatches** (earlier passes: 347/347).
+- Passes after the aligned-row/tag round: **350 markdown blocks ↔
+  350 MLX blocks, aligned 1:1, 0 mismatches** (earlier passes: 347/347,
+  350/350).
 - Structural stats: 482 equation elements (55 display + 427 inline),
   41 headings, 82 monospace table/fence lines, **0** code cells,
   **0** leftover markdown (`**`, `$$`, `|---`) and **0** TeX constructs
   outside MATLAB's documented subset (37 unique commands, all in the
-  classic text-TeX table).
+  classic text-TeX table; `\beta` additionally confirmed against
+  MATLAB's documented Greek-letter table).
+- Junk scan of the equation payload itself (this round): **0** `&`,
+  **0** `\\` row breaks, **0** `\begin{}`, **0** `[Npt]` hacks,
+  **0** `\,`, **0** nested `{{X}}` braces; Eqs. (7b)/(14) tags present.
 
 MATLAB:
 - `.m → .mlx` conversion and `.mlx → .mlx` re-open via
