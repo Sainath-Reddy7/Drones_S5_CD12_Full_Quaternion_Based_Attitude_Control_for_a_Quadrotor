@@ -1,17 +1,31 @@
 %% Full Quaternion Attitude Control and Differential-Flatness Trajectory Tracking for a Quadrotor
-% A Project Report - Bachelor of Technology, Artificial Intelligence
-% Engineering, School of Artificial Intelligence, Amrita School of
-% Engineering, Coimbatore, Amrita Vishwa Vidyapeetham. Group 12: B Sainath
-% (CB.SC.U4AIE24309), Manohar Paturi (CB.SC.U4AIE24339), K Pushpak
-% (CB.SC.U4AIE24328), Sai Krishna (CB.SC.U4AIE24308), Vishal
-% (CB.SC.U4AIE24363).
+% A PROJECT REPORT ON
 %
-% Base papers:
-% [1] E. Fresk, G. Nikolakopoulos, "Full Quaternion Based Attitude Control
-%     for a Quadrotor", European Control Conference (ECC), 2013.
-% [2] K. Choutri, M. Lagha, L. Dala, M. Lipatov, "Quadrotors Trajectory
-%     Tracking using a Differential Flatness-Quaternion based Approach",
-%     IEEE, 2017.
+% Bachelor of Technology - Artificial Intelligence Engineering
+%
+% School of Artificial Intelligence
+%
+% Amrita School of Engineering, Coimbatore
+%
+% Amrita Vishwa Vidyapeetham
+%
+% PROJECT GROUP 12 - TEAM MEMBERS
+%
+%   B Sainath            CB.SC.U4AIE24309
+%   Manohar Paturi       CB.SC.U4AIE24339
+%   K Pushpak            CB.SC.U4AIE24328
+%   Sai Krishna          CB.SC.U4AIE24308
+%   Vishal               CB.SC.U4AIE24363
+%
+% BASE PAPERS
+%
+%   [1] E. Fresk, G. Nikolakopoulos, "Full Quaternion Based Attitude
+%       Control for a Quadrotor", European Control Conference (ECC), 2013.
+%   [2] K. Choutri, M. Lagha, L. Dala, M. Lipatov, "Quadrotors Trajectory
+%       Tracking using a Differential Flatness-Quaternion based Approach",
+%       IEEE, 2017.
+figure('Name', 'Amrita Vishwa Vidyapeetham', 'Position', [200 200 540 170]);
+imshow('amrita_logo.png', 'Border', 'tight'); axis off;
 
 %% 1. Introduction and Problem Statement
 % A quadrotor is a rigid body acted on by gravity and by four propeller

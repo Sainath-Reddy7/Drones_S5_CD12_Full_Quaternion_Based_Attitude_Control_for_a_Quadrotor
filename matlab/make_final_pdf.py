@@ -135,6 +135,20 @@ li > .pg { flex: 0 0 auto; color: #444; }
 
 
 def build_print_html(html: str, pagemap=None) -> str:
+    # 0. when the title section carries code (the MLX cover logo), publish
+    #    demotes the doc title to a plain section and hoists Contents to
+    #    the top - restore title-first order for the printed PDF.
+    m = re.search(r'<h2>Contents</h2>\s*<div>\s*<ul>.*?</ul>\s*</div>', html,
+                  re.S)
+    if m:
+        toc = m.group(0)
+        # the doc-title TOC entry must go from the block being reinserted
+        toc = re.sub(r'<li>\s*<a href="#1">.*?</a>\s*</li>\s*', "", toc,
+                     count=1, flags=re.S)
+        html = html.replace(m.group(0), "", 1)
+        html = re.sub(r'<h2 id="1">([^<]+)</h2>', r'<h1 id="1">\1</h1>',
+                      html, count=1)
+        html = re.sub(r'(<h2 id="2">)', toc + r"\n\1", html, count=1)
     # 1. drop the flush-tag output blocks (publish mechanics, not content)
     html = re.sub(r'<pre class="codeoutput">Figure [MGE]\d+ embedded\.\s*'
                   r'</pre>\s*', "", html)
