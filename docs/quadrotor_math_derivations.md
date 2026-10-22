@@ -3,14 +3,7 @@ title: Quadrotor Trajectory Tracking — Full Math Derivations
 subtitle: Choutri, Lagha, Dala, Lipatov (2017), ICMSAO — every equation, where it comes from, what each symbol means
 ---
 
-# How to Use This File
 
-- Every equation keeps the **paper's equation number**, e.g. **Eq. (6)**, so you can say "this is Eq. (6) of the paper" in front of the professor.
-- Each equation has the same pattern: **what it says → where it comes from (derivation, step by step) → meaning of every symbol → where it is used next**.
-- **Paper typo:** marks a place where the printed paper has a typo or inconsistency. The corrected form is derived here. See Section 7 for the full list.
-- Things marked *(extra, not in the paper)* are my added reasoning or examples, to help you understand. Do not say they are from the paper.
-
----
 
 # 0. Big Picture — How the Equations Connect
 
