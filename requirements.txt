@@ -3,3 +3,11 @@ scipy>=1.11
 matplotlib>=3.8
 pandas>=2.1
 pytest>=7.4
+
+# Optional simulation backends — install only what you run:
+#   mujoco>=3.0            sim/mujoco deployments + flatness MuJoCo runs
+#   pybullet>=3.2          sim/gym_pybullet adapter
+#   gym-pybullet-drones    sim/gym_pybullet deployment (24 kHz)
+#   keyboard               sim/interactive keyboard apps
+# ArduPilot SITL bridge: sim/ardupilot/requirements.txt (adds pymavlink)
+# Report/PDF build tooling (docs/, matlab/): reportlab, pypdf

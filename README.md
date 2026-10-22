@@ -496,9 +496,10 @@ python -m sim.mujoco.record               # in-engine attitude-test renders
 | [`sim/`](sim/) | **Four-simulator deployment** (MuJoCo, gym-pybullet-drones, Gazebo/WSL2, ArduPilot SITL/WSL2) + interactive apps + recorders |
 | [`flatness/`](flatness/) | **Paper 2: path planning** — Eq. (8) model + Eq. (9) mixer, flat outputs (13), flatness map (15, 19–21), double-loop LQR (17–18, 22–23), study case on ideal + MuJoCo, in-engine recorder |
 | [`make_recordings.py`](make_recordings.py) · [`RECORDINGS.md`](RECORDINGS.md) | Recording generators · gallery of every result, animated |
-| [`scenarios/`](scenarios/) · [`tests/`](tests/) · [`docs/figures/`](docs/figures/) | Runnable benchmarks · 70 tests · result figures |
+| [`scenarios/`](scenarios/) · [`tests/`](tests/) · [`docs/figures/`](docs/figures/) | Runnable benchmarks · 85 tests · result figures |
 | [`docs/PROJECT_REPORT.pdf`](docs/PROJECT_REPORT.pdf) · [`REPORT.md`](REPORT.md) · [`FRP.md`](FRP.md) | Project report (full, typed equations, both papers) · paper-1 technical report · four-stack deployment rationale |
-| [deploy/](deploy/) · [`fresk_nikolakopoulos_precise_attitude_simulator_xyz_labels(1).html`](fresk_nikolakopoulos_precise_attitude_simulator_xyz_labels%281%29.html) | Vercel pages · standalone zero-dependency browser simulator |
+| [`docs/REPO_AUDIT.md`](docs/REPO_AUDIT.md) | Repository audit log — corrections, de-duplication, verification evidence |
+| [deploy/](deploy/) · [`deploy/simulator.html`](deploy/simulator.html) | Vercel pages · standalone zero-dependency browser simulator |
 
 ## Testing
 
@@ -507,8 +508,8 @@ python -m sim.mujoco.record               # in-engine attitude-test renders
 | `test_quaternion.py` | 7 | Quaternion algebra, DCM round-trips, closed-loop sign consistency |
 | `test_sitl.py` | 20 | 6-DOF stack: frames, eq. 18 parity, hover, mixer + desaturation, scheduler, arming/failsafes |
 | `test_sim_bridge.py` | 8 | The sim/ bridge: conjugate conventions, priority mixer, altitude hold, scenario parity |
-| `test_sim_adapters.py` | 5 | MuJoCo + gym-pybullet adapter smoke tests, actuation calibration, model integrity |
-| `test_sim_interactive.py` | 14 | Interactive apps: key handling, position pin, paper tests from any mode |
+| `test_sim_adapters.py` | 6 | MuJoCo + gym-pybullet adapter smoke tests, actuation calibration, model integrity |
+| `test_sim_interactive.py` | 15 | Interactive apps: key handling, position pin, paper tests from any mode |
 | `test_bridge_mavlink.py` | 1 | ArduPilot bridge end-to-end against the MAVLink mock-SITL |
 | **`test_flatness.py`** | **13** | **Paper 2: flatness-map exactness (1e-10), feedforward consistency, mixer round-trip + desaturation, LQR pole stability, closed-loop circle tracking < 5 cm radial RMS on both plants** |
 | **`test_flatness_extensions.py`** | **15** | **E1/E2: waypoint hits to 1e-10, C2 knots, rest ends, min-snap < min-jerk objective, closed-loop figure-8 / orbit / waypoint mission < 10 cm 3D RMS, yaw-follow tangent** |
