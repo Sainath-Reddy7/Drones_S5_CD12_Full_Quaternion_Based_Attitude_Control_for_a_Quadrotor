@@ -1,6 +1,6 @@
 # 0. Big Picture — How the Equations Connect
 
-```text
+```
 Quaternion math (Eq. 1-7)    : q, q*, q (x) r, R_q, q_dot = 1/2 q (x) w
 Dynamics (Eq. 8-10)          : full model (8), motors to T and torques (9), linear model at hover (10)
 Flatness (Eq. 11-15)         : outputs x, y, z, psi give the desired angles (15)
