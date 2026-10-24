@@ -483,6 +483,22 @@ come out bit-identical to the plain runs. Per-recording metrics and commentary:
 |---|---|---|
 | <img src="results/recordings/mujoco_step_RENDER.gif" width="270" alt="MuJoCo in-engine: step test"> | <img src="results/recordings/mujoco_sine_RENDER.gif" width="270" alt="MuJoCo in-engine: sine test"> | <img src="results/recordings/mujoco_flip_RENDER.gif" width="270" alt="MuJoCo in-engine: 360° flip"> |
 
+How to read them: **red front arms / blue rear** = the drone; the dashed **RGB triad** = the
+paper's reference attitude — perfect tracking means the arms align with the triad. The
+attitude-only controller drifts by design, so the render puppet holds the vehicle at a
+fixed stage point while its live attitude and body rates play out; the drift itself is
+visible in the path-trace GIFs below (and the CSV logs). Recorded runs are
+**bit-identical** to the benchmark runs.
+
+- **STEP** — 1 rad steps staggered on roll/pitch/yaw (t = 1, 5, 9 s): each axis settles
+  in ≈ 2 s with essentially no overshoot (paper Figs. 3–4); torque briefly saturates at
+  each step onset, then stays linear.
+- **SINE** — 0.5 rad amplitude at 1 rad/s on all axes under the paper's ±0.1 noise:
+  measured lag ≈ 0.4–0.5 s, matching the paper's "about 0.5 second" (paper Figs. 5–6).
+- **FLIP** — 0→2π ramp with shortest-path correction disabled: the flip **completes on
+  MuJoCo contact physics** and φ settles in ≈ 2.9 s; raw q₀, q₁ stay smooth through the
+  full rotation — no gimbal-lock artifact (paper Figs. 7–8).
+
 ### Paper 1 — attitude benchmarks, path traces (two engines)
 
 | STEP | SINE | FLIP |
@@ -491,12 +507,43 @@ come out bit-identical to the plain runs. Per-recording metrics and commentary:
 | <img src="results/recordings/mujoco_step.gif" width="270" alt="MuJoCo: step path trace"> | <img src="results/recordings/mujoco_sine.gif" width="270" alt="MuJoCo: sine path trace"> | <img src="results/recordings/mujoco_flip.gif" width="270" alt="MuJoCo: flip path trace"> |
 | <img src="results/recordings/gym_step.gif" width="270" alt="gym-pybullet-drones: step (6-DOF stack)"> |  |  |
 
+Each trace animates the logged states of the benchmark run (reference triad vs the
+drone's frame over time):
+
+- **step — gym-pybullet-drones vs MuJoCo**: RMS tracking error **17.68° vs 17.71°**
+  (max 70.7° / 71.2°) — **0.03° cross-engine agreement**, the strongest evidence the
+  loop belongs to the controller, not the engine.
+- **sine — both engines**: RMS **17.52° / 17.61°**, max ≈ 41°. The ≈ 17.5° RMS floor is
+  the paper's own sensor noise (±0.1 on quaternion components ≈ ±11° of measured
+  attitude), not controller error.
+- **flip — both engines**: MuJoCo completes (settles ≈ 2.9 s); gym-pybullet enters a
+  limit cycle near φ ≈ 2.1 rad and unwinds — the documented engine-dependent
+  knife-edge of the sampled fast pole (Key finding 2), not a tuning flaw.
+- **gym_step** — the same step test flown through the **6-DOF PX4-style flight stack**
+  (`pysitl`: rotors, mixer, scheduler, arming/failsafes) with the controller unmodified.
+
 ### Paper 2 — study case: circle, radius 1 m @ 1 m altitude
 
 | Ideal Eq. (8) model | MuJoCo contact physics (in-engine) | MuJoCo contact physics (path trace) |
 |---|---|---|
 | <img src="results/recordings/flatness_ideal_circle.gif" width="270" alt="Flatness circle, ideal model"> | <img src="results/recordings/mujoco_flatness_RENDER.gif" width="270" alt="Flatness circle, MuJoCo in-engine"> | <img src="results/recordings/flatness_mujoco_circle.gif" width="270" alt="Flatness circle, MuJoCo path trace"> |
 | <img src="results/recordings/mujoco_flatness_circle_RENDER.gif" width="380" alt="Flatness circle, MuJoCo in-engine with reference ring" colspan="3"> |  |  |
+
+What each shows:
+
+- **Ideal Eq. (8) model** — the study case on the paper's own equations (RK4 @ 1 kHz):
+  reference vs actual position/attitude animated from the logged states. Radial
+  tracking **RMS 2.7 cm** on the 1 m circle.
+- **MuJoCo in-engine** — recorded straight off the MuJoCo renderer: **solid drone =
+  actual**, **RGB axes = the flatness map's desired attitude q_d**, **yellow ball =
+  the reference point on the path right now**, orange ring = the 1 m circle at 1 m
+  altitude. Radial RMS **2.8 cm**, zero rotor saturation; the recorded run's metrics
+  are bit-identical to the plain benchmark.
+- **MuJoCo path trace** — the same run animated from its log: X/Y/Z vs reference
+  (the paper's Figs. 4–7 reproduced) — **2.8 cm** radial, matching the ideal plant
+  to a millimetre-level, confirming the flatness map does the work, not the integrator.
+- **Interactive-app circle** — the same circle mission flown **live in the interactive
+  MuJoCo city app** (keyboard-controllable simulator, U key) with its reference ring.
 
 ### Paper 2 — extensions (E1/E2): new flat-output paths, same frozen controller
 
@@ -515,6 +562,22 @@ Path traces (ideal Eq. (8) model):
 | Waypoints — min-snap (E1) | Waypoints — min-jerk (A/B control) |
 |---|---|
 | <img src="results/recordings/flatness_waypoints_minsnap.gif" width="380" alt="Waypoints min-snap"> | <img src="results/recordings/flatness_waypoints_minjerk.gif" width="380" alt="Waypoints min-jerk"> |
+
+What each shows:
+
+- **In-engine renders** — the E2 figure-8 and the E1 min-snap waypoint tour flown on
+  MuJoCo contact physics with the same frozen controller. Markers: orange = figure-8
+  path, red/blue spheres = waypoints, small amber = the min-snap path between them.
+  Metrics bit-identical to the benchmark runs.
+- **figure-8 (E2)** — Lissajous path (A = 1.5/B = 1) with the yaw-follow option:
+  3D RMS **4.7 cm** on the ideal model and **identical 4.7 cm** on MuJoCo contact
+  physics.
+- **vertical orbit (E2)** — cone-sweep climb-and-dive path: **3.9 cm** 3D RMS, the
+  same accuracy as the flat circle — the flatness map generalizes beyond planar paths.
+- **waypoints min-snap vs min-jerk (E1)** — identical 5-waypoint tour and times, A/B:
+  **6.1 cm vs 8.1 cm** 3D RMS. Min-snap wins by 25% because snap (the 4th derivative)
+  drives the torques — the flatness argument, measured. Waypoints are hit to 1e-10
+  with velocity/acceleration continuous at every knot.
 
 ---
 
