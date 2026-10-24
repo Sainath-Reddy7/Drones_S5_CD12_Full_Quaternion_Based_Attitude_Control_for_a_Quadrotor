@@ -21,11 +21,11 @@
 ---
 
 <p align="center">
-  <a href="https://quadrotor-quaternion-sim.vercel.app"><b>🌐 Live: four-simulator results & benchmark</b></a>
+  <a href="https://quadrotor-quaternion-sim.vercel.app"><b> Live: four-simulator results & benchmark</b></a>
   &nbsp;·&nbsp;
-  <a href="https://quadrotor-quaternion-sim.vercel.app/simulator.html"><b>🎮 Interactive simulator — fly the paper's controller in your browser</b></a>
+  <a href="https://quadrotor-quaternion-sim.vercel.app/simulator.html"><b> Interactive simulator — fly the paper's controller in your browser</b></a>
   &nbsp;·&nbsp;
-  <a href="RECORDINGS.md"><b>🎬 Recording gallery — every test & path-planning flight, animated</b></a>
+  <a href="RECORDINGS.md"><b> Recording gallery — every test & path-planning flight, animated</b></a>
 </p>
 
 ## What this repository is
@@ -70,7 +70,7 @@ linked sections):
 | B Sainath | CB.SC.U4AIE24309 | cb.sc.u4aie24309@cb.students.amrita.edu |
 | Manohar Paturi | CB.SC.U4AIE24339 | cb.sc.u4aie24339@cb.students.amrita.edu |
 | K Pushpak | CB.SC.U4AIE24328 | cb.sc.u4aie24328@cb.students.amrita.edu |
-| Sai Krishna | CB.SC.U4AIE24308 | cb.sc.u4aie24308@cb.students.amrita.edu |
+| B Sai Krishna | CB.SC.U4AIE24308 | cb.sc.u4aie24308@cb.students.amrita.edu |
 | Vishal | CB.SC.U4AIE24363 | cb.sc.u4aie24363@cb.students.amrita.edu |
 
 B.Tech (AI Engineering), School of Artificial Intelligence,
