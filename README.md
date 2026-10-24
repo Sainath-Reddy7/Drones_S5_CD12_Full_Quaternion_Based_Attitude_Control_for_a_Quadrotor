@@ -49,6 +49,20 @@ cross-validated on multiple physics engines:
 Everything below is measured, not claimed: each result regenerates from one command,
 and every recording in [`RECORDINGS.md`](RECORDINGS.md) *is* the measured run.
 
+## Results at a glance
+
+Every number below is reproduced by this repository (commands in
+[Running everything](#running-everything); full tables, plots and per-axis RMS in the
+linked sections):
+
+| Paper | Experiment | Measured result | Details |
+|---|---|---|---|
+| 1 — attitude | Sine 0.5 rad @ 1 rad/s, paper noise ±0.1 | RMS: ArduPilot (real firmware) **14.7° ± 0.2**, Gazebo **17.3°**, gym-pybullet-drones 17.52°, MuJoCo 17.61° — cross-engine step agreement 0.03° | [Part II](#part-ii--four-simulator-deployment-same-frozen-controller) · [`results/comparison.md`](results/comparison.md) |
+| 1 — attitude | 360° flip (0→2π ramp) | completes on ArduPilot (φ settles **2.89 s**) and MuJoCo (**2.93 s**), 3/3 seeds each | [Part II](#part-ii--four-simulator-deployment-same-frozen-controller) · [`RECORDINGS.md`](RECORDINGS.md) |
+| 2 — study case | Circle, radius 1 m @ 1 m altitude | radial RMS **2.7 cm** (ideal Eq. 8) · **2.8 cm** (MuJoCo contact) · **3.7 cm** (+noise ±0.1) — ≈97% accuracy, zero rotor saturation | [Part III results](#results--the-papers-study-case-circle-radius-1-m-at-1-m-altitude) |
+| 2 — extensions | Figure-8 (A=1.5/B=1) · vertical orbit | 3D RMS **4.7 cm** (identical on MuJoCo) · **3.9 cm** | [Extensions](#extensions-delivered--phase-a-trajectory-library--aggressive-paths) |
+| 2 — extensions | 5-waypoint tour: min-snap vs min-jerk | **6.1 cm vs 8.1 cm** 3D RMS — min-snap 25% better, exactly as flatness predicts | [Extensions](#extensions-delivered--phase-a-trajectory-library--aggressive-paths) |
+
 ## Team - Group 12
 
 | Member | Roll No. | Email |

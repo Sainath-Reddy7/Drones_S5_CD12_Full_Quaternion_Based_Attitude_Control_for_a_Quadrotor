@@ -32,7 +32,13 @@ from pathlib import Path
 import numpy as np
 
 from quat_sitl import quaternion as quat
-from sim.common import AltitudeHold, PAPER_VEHICLE, QuatBridge, thrusts_to_wrench_zup
+from sim.common import (
+    TORQUE_LIMIT,
+    AltitudeHold,
+    PAPER_VEHICLE,
+    QuatBridge,
+    thrusts_to_wrench_zup,
+)
 from sim.common.scenarios import FLIP_RAMP_6DOF, reference_quat
 from sim.interactive import config as cfg
 from sim.interactive.input_manager import InputManager
@@ -56,6 +62,25 @@ SPAWN = np.array([0.0, -6.0, 1.2])
 
 def _euler(q) -> tuple[float, float, float]:
     return tuple(float(x) for x in quat.to_euler(q))
+
+
+def physical_params(sim: "DroneSim") -> list[str]:
+    """Live physical values for the HUD panel, read from the actual model,
+    controller and bridge objects so the display can never drift from what
+    the simulation really uses."""
+    g = sim.bridge.controller.gains
+    inr = sim.model.body_inertia[sim.bid]
+    return [
+        f"PHYS  m {sim.model.body_mass[sim.bid]:.3f} kg   "
+        f"I {inr[0]:.2e} {inr[1]:.2e} {inr[2]:.2e} kg m^2   "
+        f"g {-sim.model.opt.gravity[2]:.2f} m/s^2",
+        f"CTRL  Pq {g.Pq:g}  Pw {g.Pw:g}   |tau| <= {TORQUE_LIMIT:g} N m   "
+        f"ctrl {cfg.CONTROLLER['control_hz'] / 1e3:g} kHz (ZOH)   "
+        f"physics {sim.rate / 1e3:g} kHz",
+        f"ROTOR max {PAPER_VEHICLE.rotor_thrust_max:.2f} N each   "
+        f"total {PAPER_VEHICLE.thrust_max_total:.2f} N   "
+        f"arm {PAPER_VEHICLE.arm:.3f} m",
+    ]
 
 
 class DroneSim:
@@ -505,7 +530,10 @@ def main() -> None:
     sim = DroneSim()
     inp = InputManager()
     print(__doc__)
-    print(f">>> env: {sim.env} | 3D window launching... Esc quits.\n")
+    print(f">>> env: {sim.env} | 3D window launching... Esc quits.")
+    for ln in physical_params(sim):
+        print(f">>> {ln}")
+    print()
 
     import keyboard
 
@@ -628,6 +656,18 @@ def main() -> None:
                     with viewer.lock():
                         viewer.cam.lookat, viewer.cam.distance = [0, 10, 0], 60.0
                         viewer.cam.elevation, viewer.cam.azimuth = -45, 130
+                # physical-parameters panel beside the flight area (live values)
+                try:
+                    with viewer.lock():
+                        scn = viewer.user_scn
+                        scn.ngeom = 0
+                        for i, txt in enumerate(physical_params(sim)):
+                            gm = scn.geoms[i]
+                            gm.type = mujoco.mjtGeom.mjGEOM_LABEL
+                            gm.pos = [SPAWN[0] - 3.0, SPAWN[1], 2.9 - 0.32 * i]
+                            gm.label = txt[:99]
+                except Exception:
+                    pass
                 viewer.sync()
 
             if k % HUD_EVERY == 0:

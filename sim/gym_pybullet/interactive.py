@@ -46,7 +46,13 @@ from pathlib import Path
 import numpy as np
 
 from quat_sitl import quaternion as quat
-from sim.common import AltitudeHold, PAPER_VEHICLE, QuatBridge, thrusts_to_wrench_zup
+from sim.common import (
+    TORQUE_LIMIT,
+    AltitudeHold,
+    PAPER_VEHICLE,
+    QuatBridge,
+    thrusts_to_wrench_zup,
+)
 from sim.common.scenarios import FLIP_RAMP_6DOF, reference_quat
 from sim.interactive import config as cfg
 from sim.interactive.input_manager import InputManager
@@ -130,6 +136,7 @@ class PyBulletSim:
         # per-test error statistics printed when a paper test finishes
         self._hud_l1 = -1
         self._hud_l2 = -1
+        self._hud_l3 = -1
         self._triad = [-1, -1, -1]
         self._orbit_yaw = 35.0
         self._err_n = 0
@@ -269,15 +276,28 @@ class PyBulletSim:
               f"M {' '.join(f'{m:4.2f}' for m in self.motors)}   z {pos[2]:4.1f} m")
         a = np.asarray(pos, dtype=float)
         cid = self.env.CLIENT
+        # physical-parameters line: values read live from the engine and the
+        # controller objects, so the HUD always shows what the sim really uses
+        g = self.bridge.controller.gains
+        loc_i = p.getDynamicsInfo(
+            self.env.DRONE_IDS[0], -1, physicsClientId=cid)[2]
+        l3 = (f"m {MASS:.3f} kg  I {loc_i[0]:.2e} {loc_i[1]:.2e} {loc_i[2]:.2e} "
+              f"kg m^2  Pq {g.Pq:g} Pw {g.Pw:g}  tau<={TORQUE_LIMIT:g} Nm  "
+              f"rotorMax {PAPER_VEHICLE.rotor_thrust_max:.2f}N  "
+              f"ctrl/sim {1.0 / self.dt / 1e3:.0f} kHz  g {G:g}")
         if self._hud_l1 >= 0:
             p.removeUserDebugItem(self._hud_l1, physicsClientId=cid)
             p.removeUserDebugItem(self._hud_l2, physicsClientId=cid)
+            p.removeUserDebugItem(self._hud_l3, physicsClientId=cid)
         self._hud_l1 = p.addUserDebugText(
             l1, (a + np.array([0.0, 0.0, 0.55])).tolist(),
             textColorRGB=[1, 1, 1], textSize=1.3, physicsClientId=cid)
         self._hud_l2 = p.addUserDebugText(
             l2, (a + np.array([0.0, 0.0, 0.40])).tolist(),
             textColorRGB=[1, 0.85, 0.2], textSize=1.2, physicsClientId=cid)
+        self._hud_l3 = p.addUserDebugText(
+            l3, (a + np.array([0.0, 0.0, 0.25])).tolist(),
+            textColorRGB=[0.45, 0.85, 1.0], textSize=1.1, physicsClientId=cid)
         R = quat.to_dcm(quat.conj(self.current_qref()))  # body->world, ref
         cols = ([1, 0.1, 0.1], [0.1, 1, 0.1], [0.15, 0.35, 1])
         for i in range(3):
