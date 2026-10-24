@@ -656,7 +656,8 @@ def main() -> None:
                     with viewer.lock():
                         viewer.cam.lookat, viewer.cam.distance = [0, 10, 0], 60.0
                         viewer.cam.elevation, viewer.cam.azimuth = -45, 130
-                # physical-parameters panel beside the flight area (live values)
+                # physical-parameters panel: label rows float directly above
+                # the drone and follow it, so they are always in view
                 try:
                     with viewer.lock():
                         scn = viewer.user_scn
@@ -664,7 +665,7 @@ def main() -> None:
                         for i, txt in enumerate(physical_params(sim)):
                             gm = scn.geoms[i]
                             gm.type = mujoco.mjtGeom.mjGEOM_LABEL
-                            gm.pos = [SPAWN[0] - 3.0, SPAWN[1], 2.9 - 0.32 * i]
+                            gm.pos = [q[0], q[1], q[2] + 1.15 - 0.34 * i]
                             gm.label = txt[:99]
                 except Exception:
                     pass
