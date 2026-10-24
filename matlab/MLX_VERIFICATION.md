@@ -79,10 +79,13 @@ Conversion errors found by the two-pass diff and fixed in `md_to_mlx.py`:
 ## B. Verification performed
 
 Content (automated, two independent passes):
-- Passes after the table/inline-math round: **421 markdown blocks ↔
-  421 MLX blocks, aligned 1:1, 0 mismatches** (earlier passes: 347/347,
-  350/350; the count grew because each table row is now its own text
-  block instead of one monospace blob).
+- Passes after the extension-results/references round (user-requested content
+  addition to the source markdown): **439 markdown blocks ↔ 439 MLX blocks,
+  aligned 1:1, 0 mismatches** (earlier passes: 347/347, 350/350, 421/421). The
+  added content: §6.1 measured study-case reproduction table, §6.2 extension
+  results (E1/E2) table, and a completed References section (Fresk ECC 2013 and
+  Chovancová et al. RAS 2016 added alongside Choutri ICMSAO 2017, all with
+  DOI-verified entries).
 - Structural stats: **565 equation elements** (55 display + 510 inline),
   41 headings, 6 monospace fence lines (the ASCII maps), **0** code
   cells, **0** leftover markdown and **0** TeX constructs outside
