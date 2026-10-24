@@ -468,21 +468,53 @@ on the branch.
 *(Flight keys moved off WASD in the PyBullet app: WASD/arrows are PyBullet's own camera
 controls — they collided with flying.)*
 
-## Recordings gallery
+## Recordings — every result, animated
 
-[`RECORDINGS.md`](RECORDINGS.md) — animated GIF recordings of **everything**, regenerated
-by `python make_recordings.py`, `python -m sim.mujoco.record` and
-`python -m flatness.record_mujoco`:
+All 20 recordings, organized by paper and experiment. Every one regenerates from a
+command (`python make_recordings.py`, `python -m sim.mujoco.record`,
+`python -m flatness.record_mujoco`) and **is** the benchmark run — recorded metrics
+come out bit-identical to the plain runs. Per-recording metrics and commentary:
+[`RECORDINGS.md`](RECORDINGS.md).
 
-- the 3 paper attitude tests on **both** engines — in-engine MuJoCo renders
-  (color-coded drone chasing the RGB reference triad, fixed horizon camera, live
-  quaternion error) plus path-trace animations from the CSV logs;
-- the **path-planning circle** in-engine (drone + desired-attitude triad + moving
-  reference point + reference ring) on both plants.
+### Paper 1 — attitude benchmarks, in-engine MuJoCo renders
+*(color-coded drone chasing the RGB reference triad, live quaternion error)*
 
-Every recording **is** the benchmark run: the recorders hook the frozen benchmark loops,
-and the recorded runs' metrics come out **bit-identical** to the plain runs (e.g. step
-rms 17.71199098675371°, flatness radial rms 0.028119440263898822 m).
+| STEP — 1 rad staggered steps | SINE — 0.5 rad @ 1 rad/s, ±0.1 noise | FLIP — 360°, no gimbal lock |
+|---|---|---|
+| <img src="results/recordings/mujoco_step_RENDER.gif" width="270" alt="MuJoCo in-engine: step test"> | <img src="results/recordings/mujoco_sine_RENDER.gif" width="270" alt="MuJoCo in-engine: sine test"> | <img src="results/recordings/mujoco_flip_RENDER.gif" width="270" alt="MuJoCo in-engine: 360° flip"> |
+
+### Paper 1 — attitude benchmarks, path traces (two engines)
+
+| STEP | SINE | FLIP |
+|---|---|---|
+| <img src="results/recordings/gym_pybullet_step.gif" width="270" alt="gym-pybullet-drones: step"> | <img src="results/recordings/gym_pybullet_sine.gif" width="270" alt="gym-pybullet-drones: sine"> | <img src="results/recordings/gym_pybullet_flip.gif" width="270" alt="gym-pybullet-drones: flip"> |
+| <img src="results/recordings/mujoco_step.gif" width="270" alt="MuJoCo: step path trace"> | <img src="results/recordings/mujoco_sine.gif" width="270" alt="MuJoCo: sine path trace"> | <img src="results/recordings/mujoco_flip.gif" width="270" alt="MuJoCo: flip path trace"> |
+| <img src="results/recordings/gym_step.gif" width="270" alt="gym-pybullet-drones: step (6-DOF stack)"> |  |  |
+
+### Paper 2 — study case: circle, radius 1 m @ 1 m altitude
+
+| Ideal Eq. (8) model | MuJoCo contact physics (in-engine) | MuJoCo contact physics (path trace) |
+|---|---|---|
+| <img src="results/recordings/flatness_ideal_circle.gif" width="270" alt="Flatness circle, ideal model"> | <img src="results/recordings/mujoco_flatness_RENDER.gif" width="270" alt="Flatness circle, MuJoCo in-engine"> | <img src="results/recordings/flatness_mujoco_circle.gif" width="270" alt="Flatness circle, MuJoCo path trace"> |
+| <img src="results/recordings/mujoco_flatness_circle_RENDER.gif" width="380" alt="Flatness circle, MuJoCo in-engine with reference ring" colspan="3"> |  |  |
+
+### Paper 2 — extensions (E1/E2): new flat-output paths, same frozen controller
+
+In-engine MuJoCo renders:
+
+| Figure-8 | Waypoint mission (min-snap) |
+|---|---|
+| <img src="results/recordings/mujoco_flatness_figure8_RENDER.gif" width="380" alt="Figure-8, MuJoCo in-engine"> | <img src="results/recordings/mujoco_flatness_waypoints_RENDER.gif" width="380" alt="Waypoints, MuJoCo in-engine"> |
+
+Path traces (ideal Eq. (8) model):
+
+| Figure-8 (E2) | Vertical orbit (E2) |
+|---|---|
+| <img src="results/recordings/flatness_figure8.gif" width="380" alt="Figure-8 path trace"> | <img src="results/recordings/flatness_orbit.gif" width="380" alt="Vertical orbit path trace"> |
+
+| Waypoints — min-snap (E1) | Waypoints — min-jerk (A/B control) |
+|---|---|
+| <img src="results/recordings/flatness_waypoints_minsnap.gif" width="380" alt="Waypoints min-snap"> | <img src="results/recordings/flatness_waypoints_minjerk.gif" width="380" alt="Waypoints min-jerk"> |
 
 ---
 
