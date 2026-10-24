@@ -122,6 +122,10 @@ silently corrected (see Fidelity notes).
 
 ## Results vs. paper
 
+> **Runnable report (MATLAB Live Script):** [`matlab/project_report.mlx`](matlab/project_report.mlx)
+> — reproduces both papers end-to-end (every figure and table below regenerates live
+> from its equations). PDF export: [`matlab/published/project_report_final.pdf`](matlab/published/project_report_final.pdf).
+
 Every numeric parameter the paper states is reproduced exactly:
 
 | Quantity | Paper | Implemented | Match |
@@ -293,6 +297,14 @@ Controller runs at the paper's stated **200 Hz** (zero-order hold); the ideal mo
 integrates at 1 kHz (RK4), MuJoCo at 20 kHz.
 
 ## Equation → function map (paper 2)
+
+> **Complete derivations (MATLAB Live Script):**
+> [`matlab/quadrotor_math_derivations.mlx`](matlab/quadrotor_math_derivations.mlx)
+> — every equation of this paper derived step by step (quaternion algebra through the
+> Riccati equation, with the study-case and extension results). Verified block-by-block
+> against the source document: [`matlab/MLX_VERIFICATION.md`](matlab/MLX_VERIFICATION.md).
+> The runnable end-to-end report for both papers is
+> [`matlab/project_report.mlx`](matlab/project_report.mlx).
 
 | Paper eq. | Description | Location |
 |---|---|---|
@@ -716,7 +728,13 @@ Gazebo — [gazebosim.org](https://gazebosim.org) ·
 ArduPilot SITL — [ardupilot.org](https://ardupilot.org/dev/docs/sitl-simulator-software-in-the-loop.html).
 
 [8] This repository — equation-to-function maps above; full methodology in
-[`REPORT.md`](REPORT.md); step-by-step derivations in
-[`matlab/quadrotor_math_derivations.mlx`](matlab/quadrotor_math_derivations.mlx)
-(verification: [`matlab/MLX_VERIFICATION.md`](matlab/MLX_VERIFICATION.md));
-recordings in [`RECORDINGS.md`](RECORDINGS.md).
+[`REPORT.md`](REPORT.md); recordings in [`RECORDINGS.md`](RECORDINGS.md).
+
+[9] This repository, MATLAB Live Script reports:
+[`matlab/project_report.mlx`](matlab/project_report.mlx) — the runnable report
+reproducing both papers end-to-end (PDF export:
+[`matlab/published/project_report_final.pdf`](matlab/published/project_report_final.pdf));
+[`matlab/quadrotor_math_derivations.mlx`](matlab/quadrotor_math_derivations.mlx) —
+the complete equation-by-equation derivations of paper 2, verified block-by-block
+against the source document
+([`matlab/MLX_VERIFICATION.md`](matlab/MLX_VERIFICATION.md)).
